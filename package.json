@@ -6,10 +6,16 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "lint": "eslint \"./**/*.{js,jsx,ts,tsx}\" --fix"
   },
   "jest": {
     "preset": "jest-expo"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
   },
   "dependencies": {
     "@expo/vector-icons": "^12.0.0",
@@ -37,6 +43,16 @@
     "@babel/core": "~7.9.0",
     "@types/react": "~16.9.35",
     "@types/react-native": "~0.63.2",
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "eslint": "^7.17.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-typescript": "^12.0.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-json": "^2.1.2",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "husky": "^4.3.7",
     "jest-expo": "~40.0.0",
     "typescript": "~4.0.0"
   },
