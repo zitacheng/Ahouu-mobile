@@ -41,6 +41,7 @@ function AxiosConfigBuilder(config?: CustomConfig): AxiosRequestConfig | undefin
   return clone;
 }
 
+// TODO: template type (no any)
 export default {
   ...instance,
   get: async (
