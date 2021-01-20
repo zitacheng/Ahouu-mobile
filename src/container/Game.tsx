@@ -17,6 +17,7 @@ import Modal from 'react-native-modal';
 import {
   MaterialIcons, AntDesign, Ionicons, FontAwesome5,
 } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 import {
   PlayerState, RoomState, Player, PlayerRole, MessageType,
 } from '../services/types/rooms';
@@ -28,7 +29,6 @@ import witchCard from '../assets/images/sorciere.png';
 import seerCard from '../assets/images/voyant.png';
 import villagerCard from '../assets/images/paysan.png';
 import * as gameAlert from '../components/gameAlert';
-import { registerRootComponent } from 'expo';
 
 export interface GameProps { navigation: any}
 
@@ -106,6 +106,24 @@ const Game = (props: GameProps): React.ReactElement => {
     }],
     state: RoomState.LOBBY,
   };
+
+  const [sound, setSound] = React.useState();
+
+  async function playSound() {
+    const { sound } = await Audio.Sound.createAsync(
+      require('../assets/audio/night.mp3'),
+    );
+    setSound(sound);
+
+    console.log('Playing Sound');
+    await sound.playAsync();
+  }
+
+  React.useEffect(() => (sound
+    ? () => {
+      sound.unloadAsync();
+    }
+    : undefined), [sound]);
 
   const manageVote = (selectedPlayer: Player) => {
     if (selectedPlayer.state === PlayerState.DEAD) {
@@ -294,7 +312,7 @@ const Game = (props: GameProps): React.ReactElement => {
             room.state === RoomState.LOBBY && room.admin === self.username
             && (
             <TouchableOpacity
-              onPress={() => { }}
+              onPress={() => { Vibration.vibrate([100]); playSound();}}
               style={game.btn}
             >
               <Text style={basic.btnText}>Commencer</Text>
