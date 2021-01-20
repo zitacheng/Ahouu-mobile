@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
-import wolf from '../assets/images/wolf.png';
+import logo from '../assets/images/logo.png';
 import basic from '../constants/Styles';
 
 export interface LoginProps { navigation: any}
@@ -47,7 +47,7 @@ const Login = (props: LoginProps): React.ReactElement => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <Image style={styles.logo} source={wolf} />
+        <Image resizeMode="contain" style={styles.logo} source={logo} />
         <View style={basic.body}>
           <View style={styles.row}>
             <MaterialCommunityIcons style={basic.icon} name="account" size={20} color="#CDCBD1" />
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
   logo: {
     marginTop: '30%',
     marginBottom: 20,
-    width: 160,
-    height: 160,
+    width: '90%',
+    height: '20%',
   },
 });
 

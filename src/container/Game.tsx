@@ -13,6 +13,7 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import Modal from 'react-native-modal';
 import {
   MaterialIcons, MaterialCommunityIcons, AntDesign, Ionicons,
 } from '@expo/vector-icons';
@@ -24,6 +25,7 @@ export interface GameProps { navigation: any}
 const Game = (props: GameProps): React.ReactElement => {
   const [msg, setMsg] = useState('');
   const [thePlayer, setThePlayer] = useState(null);
+  const [playerAction, setPlayerAction] = useState(true);
 
   const room = {
     id: 'rw',
@@ -65,15 +67,15 @@ const Game = (props: GameProps): React.ReactElement => {
               {
                 room.players[i].state === PlayerState.DEAD
                 && <MaterialCommunityIcons name="grave-stone" size={50} color="black" />
-            }
+              }
               {
                  room.players[i].state !== PlayerState.DEAD && room.players[i].picture
                    && <Image source={{ uri: room.players[i].picture }} style={styles.img} />
-            }
+              }
               {
                  room.players[i].state !== PlayerState.DEAD && !room.players[i].picture
                    && <MaterialIcons name="account-circle" size={50} color="#CDCBD1" />
-            }
+              }
               {
                 room.state === RoomState.LOBBY
                 && (
@@ -81,7 +83,7 @@ const Game = (props: GameProps): React.ReactElement => {
                   <AntDesign name="closecircle" size={15} color="red" />
                 </TouchableOpacity>
                 )
-            }
+              }
             </View>
             <Text style={styles.number}>{i + 1}</Text>
           </View>,
@@ -183,6 +185,14 @@ const Game = (props: GameProps): React.ReactElement => {
             {showPlayer(6, 11)}
           </View>
         </View>
+        <Modal isVisible={playerAction}>
+          <View style={styles.modalView}>
+            <Text>I am the modal content!</Text>
+            <TouchableOpacity style={basic.button} onPress={() => { setPlayerAction(false); }}>
+              <Text>Hide </Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -303,6 +313,28 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     margin: 3,
     marginTop: 5,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  centeredView: {
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
   },
 });
 
