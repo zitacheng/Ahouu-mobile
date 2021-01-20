@@ -17,6 +17,7 @@ const Register = (props: RegisterProps) => {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [chooseImg, setChooseImg] = useState(false);
   const [image, setImage] = useState('');
 
   useEffect(() => {
@@ -63,7 +64,7 @@ const Register = (props: RegisterProps) => {
           <Ionicons name="chevron-back-circle" size={30} color="#CDCBD1" />
         </TouchableOpacity>
         {ProfileForm(username, setUsername, email,
-          setEmail, password, setPassword, setImage, image, "S'inscrire", registerUser)}
+          setEmail, password, setPassword, setImage, image, "S'inscrire", registerUser, setChooseImg, chooseImg)}
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );

@@ -23,6 +23,7 @@ const Settings = (props: SettingsProps): React.ReactElement => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [image, setImage] = useState('');
+  const [chooseImg, setChooseImg] = useState(false);
   const [user] = useState({
     id: 1, username: 'zita', picture: null, email: 'zita.cheng@epitech.eu',
   });
@@ -66,7 +67,7 @@ const Settings = (props: SettingsProps): React.ReactElement => {
       {
         edit
           ? ProfileForm(username, setUsername, email,
-            setEmail, password, setPassword, setImage, image, 'Sauvegarder', updateUser)
+            setEmail, password, setPassword, setImage, image, 'Sauvegarder', updateUser, setChooseImg, chooseImg)
           : (
             <>
               {

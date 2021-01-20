@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -11,29 +11,45 @@ import {
   MaterialIcons, Entypo, MaterialCommunityIcons,
 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import Modal from 'react-native-modal';
 import basic from '../constants/Styles';
 
 function ProfileForm(username: string, setUsername, email: string,
-  setEmail, password: string, setPassword, setImage, image, btnLabel, updateUser) {
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+  setEmail, password: string, setPassword, setImage, image, btnLabel, updateUser, setChooseImg, chooseImg) {
 
-    console.log(result);
-
-    if (!result.cancelled) {
-      setImage(result.uri);
+  const pickImage = async (cameraMode: boolean) => {
+    if (cameraMode === true) {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (perm.granted === true) {
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: true,
+          aspect: [4, 3],
+          quality: 1,
+        });
+        if (!result.cancelled) {
+          setImage(result.uri);
+          setChooseImg(false);
+        }
+      }
+    } else {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.cancelled) {
+        setImage(result.uri);
+        setChooseImg(false);
+      }
     }
   };
 
   return (
     <View>
       <View style={basic.body}>
-        <TouchableOpacity onPress={pickImage} style={styles.camera}>
+        <TouchableOpacity onPress={() => { setChooseImg(true); }} style={styles.camera}>
           {
             image
               ? <Image source={{ uri: image }} style={styles.img} />
@@ -74,6 +90,19 @@ function ProfileForm(username: string, setUsername, email: string,
           <Text style={basic.btnText}>{btnLabel}</Text>
         </TouchableOpacity>
       </View>
+      <Modal isVisible={chooseImg} animationIn="tada">
+        <View style={styles.modalView}>
+          <TouchableOpacity style={basic.button} onPress={() => { pickImage(true); }}>
+            <Text style={basic.btnText}>Caméra</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={basic.button} onPress={() => { pickImage(false); }}>
+            <Text style={basic.btnText}>Librairie</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={basic.buttonOff} onPress={() => { setChooseImg(false); }}>
+            <Text style={basic.btnText}>Annuler</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -91,6 +120,25 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: '#1b222f',
+    borderRadius: 20,
+    padding: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  centeredView: {
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    alignItems: 'center',
   },
 });
 
