@@ -23,6 +23,7 @@ export interface GameProps { navigation: any}
 
 const Game = (props: GameProps): React.ReactElement => {
   const [msg, setMsg] = useState('');
+  const [thePlayer, setThePlayer] = useState(null);
 
   const room = {
     id: 'rw',
@@ -36,6 +37,21 @@ const Game = (props: GameProps): React.ReactElement => {
       id: 3, username: 'tata', state: PlayerState.AWAKE, picture: null, role: 'none',
     }],
     state: RoomState.LOBBY,
+  };
+
+  const kickUser = () => {
+    Alert.alert(
+      'Attention',
+      `Êtes vous sûre de vouloir exclure ${thePlayer ? thePlayer.username : 'ce joueur'} du jeu ?`,
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        { text: 'Oui', onPress: () => console.log("KICK USER") },
+      ],
+      { cancelable: false },
+    );
   };
 
   const showPlayer = (start: number, end: number) => {
@@ -61,7 +77,7 @@ const Game = (props: GameProps): React.ReactElement => {
               {
                 room.state === RoomState.LOBBY
                 && (
-                <TouchableOpacity style={styles.kick}>
+                <TouchableOpacity style={styles.kick} onPress={() => { setThePlayer(room.players[i]); kickUser(); }}>
                   <AntDesign name="closecircle" size={15} color="red" />
                 </TouchableOpacity>
                 )

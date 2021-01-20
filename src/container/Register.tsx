@@ -31,8 +31,8 @@ const Register = (props: RegisterProps) => {
   function registerUser() {
     if (!email || !password || !username) {
       Alert.alert(
-        'Error',
-        'Please fill email password and username',
+        'Erreur',
+        "Veuillez fournir votre nom d'utilisateur, mot de passe et email",
         [
           {
             text: 'Cancel',

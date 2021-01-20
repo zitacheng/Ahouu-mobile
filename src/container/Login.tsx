@@ -24,8 +24,8 @@ const Login = (props: LoginProps): React.ReactElement => {
   function authenticate() {
     if (!username || !password) {
       Alert.alert(
-        'Error',
-        'Please enter password and username',
+        'Erreur',
+        "Remplissez votre nom d'utilisateur et mot de passe.",
         [
           {
             text: 'Cancel',
