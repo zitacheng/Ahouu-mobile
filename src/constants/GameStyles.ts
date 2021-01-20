@@ -155,6 +155,18 @@ const game = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
+  btn: {
+    backgroundColor: '#48D23F',
+    borderRadius: 20,
+    padding: 5,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    position: 'absolute',
+    left: '40%',
+  },
 });
 
 export default game;

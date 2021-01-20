@@ -11,6 +11,7 @@ import {
   Keyboard,
   Image,
   ScrollView,
+  Vibration,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import {
@@ -27,6 +28,7 @@ import witchCard from '../assets/images/sorciere.png';
 import seerCard from '../assets/images/voyant.png';
 import villagerCard from '../assets/images/paysan.png';
 import * as gameAlert from '../components/gameAlert';
+import { registerRootComponent } from 'expo';
 
 export interface GameProps { navigation: any}
 
@@ -102,7 +104,7 @@ const Game = (props: GameProps): React.ReactElement => {
     }, {
       id: 4, username: 'tata', state: PlayerState.AWAKE, picture: null, role: PlayerRole.NONE,
     }],
-    state: RoomState.STARTED,
+    state: RoomState.LOBBY,
   };
 
   const manageVote = (selectedPlayer: Player) => {
@@ -288,12 +290,28 @@ const Game = (props: GameProps): React.ReactElement => {
           >
             <Ionicons name="chevron-back-circle" size={30} color="#CDCBD1" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => { setshowCard(true); }}
-            style={game.headerIcon}
-          >
-            <AntDesign name="questioncircle" size={24} color="#CDCBD1" />
-          </TouchableOpacity>
+          {
+            room.state === RoomState.LOBBY && room.admin === self.username
+            && (
+            <TouchableOpacity
+              onPress={() => { }}
+              style={game.btn}
+            >
+              <Text style={basic.btnText}>Commencer</Text>
+            </TouchableOpacity>
+            )
+          }
+          {
+            room.state === RoomState.STARTED
+            && (
+            <TouchableOpacity
+              onPress={() => { setshowCard(true); }}
+              style={game.headerIcon}
+            >
+              <AntDesign name="questioncircle" size={24} color="#CDCBD1" />
+            </TouchableOpacity>
+            )
+          }
         </View>
         <View style={game.row}>
           <View style={game.col}>
