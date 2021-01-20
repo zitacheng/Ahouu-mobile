@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import basic from '../constants/Styles';
 
-const ListRoom = (): React.ReactElement => {
+export interface ListRoomProps { navigation: any}
+
+const ListRoom = (props: ListRoomProps): React.ReactElement => {
   // const [rooms] = useState([]);
   const [rooms] = useState([{
     id: 1, name: 'toto', state: 'READY', players: 3, maxPlayers: 10,
@@ -42,7 +44,7 @@ const ListRoom = (): React.ReactElement => {
                   <Text style={styles.title}>{room.state}</Text>
                   <TouchableOpacity
                     onPress={() => {
-                    // props.navigation.navigate('Register');
+                      props.navigation.navigate('Game');
                     }}
                     style={basic.smBtn}
                   >

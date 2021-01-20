@@ -3,9 +3,12 @@ import {
   TextInput,
   StyleSheet,
   View,
+  Keyboard,
   Text,
   TouchableOpacity,
   Image,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
   Alert,
 } from 'react-native';
 import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
@@ -32,50 +35,54 @@ const Login = (props: LoginProps): React.ReactElement => {
         ],
         { cancelable: false },
       );
-    }
-    else {
+    } else {
       console.log('authenticate');
       props.navigation.navigate('Home');
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Image style={styles.logo} source={wolf} />
-      <View style={basic.body}>
-        <View style={styles.row}>
-          <MaterialCommunityIcons style={basic.icon} name="account" size={20} color="#CDCBD1" />
-          <TextInput
-            style={basic.input}
-            placeholder="Pseudo"
-            autoCapitalize="none"
-            onChangeText={setUsername}
-            value={username}
-          />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <Image style={styles.logo} source={wolf} />
+        <View style={basic.body}>
+          <View style={styles.row}>
+            <MaterialCommunityIcons style={basic.icon} name="account" size={20} color="#CDCBD1" />
+            <TextInput
+              style={basic.input}
+              placeholder="Pseudo"
+              autoCapitalize="none"
+              onChangeText={setUsername}
+              value={username}
+            />
+          </View>
+          <View style={styles.row}>
+            <Entypo name="lock" style={basic.icon} size={20} color="#CDCBD1" />
+            <TextInput
+              style={basic.input}
+              placeholder="Mot de passe"
+              onChangeText={setPassword}
+              secureTextEntry
+              value={password}
+            />
+          </View>
+          <TouchableOpacity onPress={authenticate} style={basic.button}>
+            <Text style={basic.btnText}>Se connecter</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              props.navigation.navigate('Register');
+            }}
+            style={basic.button}
+          >
+            <Text style={basic.btnText}>S'inscrire</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.row}>
-          <Entypo name="lock" style={basic.icon} size={20} color="#CDCBD1" />
-          <TextInput
-            style={basic.input}
-            placeholder="Mot de passe"
-            onChangeText={setPassword}
-            secureTextEntry
-            value={password}
-          />
-        </View>
-        <TouchableOpacity onPress={authenticate} style={basic.button}>
-          <Text style={basic.btnText}>Se connecter</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            props.navigation.navigate('Register');
-          }}
-          style={basic.button}
-        >
-          <Text style={basic.btnText}>S'inscrire</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 
