@@ -19,7 +19,9 @@ import {
 import { PlayerState, RoomState } from '../services/types/rooms';
 import basic from '../constants/Styles';
 
-const Game = (): React.ReactElement => {
+export interface GameProps { navigation: any}
+
+const Game = (props: GameProps): React.ReactElement => {
   const [msg, setMsg] = useState('');
 
   const room = {
@@ -105,7 +107,18 @@ const Game = (): React.ReactElement => {
       >
         <TouchableOpacity
           onPress={() => {
-            props.navigation.goBack();
+            Alert.alert(
+              'Quitter',
+              'Êtes vous sûre de quitter le jeu ?',
+              [
+                {
+                  text: 'Annuler',
+                  style: 'cancel',
+                },
+                { text: 'Oui', onPress: () => props.navigation.goBack() },
+              ],
+              { cancelable: true },
+            );
           }}
           style={styles.back}
         >

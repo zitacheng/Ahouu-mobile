@@ -17,17 +17,18 @@ export default function App() {
   }
 
   return (
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="Login" component={Login} />
-          <Stack.Screen name="Register" component={Register} />
-          <Stack.Screen name="Home" component={TabScreen} />
-          <Stack.Screen name="Game" component={Game} />
-        </Stack.Navigator>
-      </NavigationContainer>
+    <NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      >
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Home" component={TabScreen} />
+        <Stack.Screen name="Game" component={Game} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
