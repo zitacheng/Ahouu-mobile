@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import {
-  MaterialIcons, AntDesign, Ionicons, FontAwesome5
+  MaterialIcons, AntDesign, Ionicons, FontAwesome5,
 } from '@expo/vector-icons';
 import {
   PlayerState, RoomState, Player, PlayerRole,
@@ -26,16 +26,16 @@ import wolfCard from '../assets/images/loupgarou.png';
 import witchCard from '../assets/images/sorciere.png';
 import seerCard from '../assets/images/voyant.png';
 import villagerCard from '../assets/images/paysan.png';
+import * as gameAlert from '../components/gameAlert';
 
 export interface GameProps { navigation: any}
 
 const Game = (props: GameProps): React.ReactElement => {
   const [msg, setMsg] = useState('');
-  const [thePlayer, setThePlayer] = useState(null);
-  const [playerAction, setPlayerAction] = useState(false);
+  const [thePlayer, setThePlayer] = useState<Player>();
   const [showCard, setshowCard] = useState(false);
   const [self, setSelf] = React.useState<Player>({
-    username: 'tata', state: PlayerState.AWAKE, picture: '', role: PlayerRole.WITCH, messages: [], connected: true,
+    username: 'tata', state: PlayerState.ROLE_BASED_ACTION, picture: '', role: PlayerRole.SEER, messages: [], connected: true,
   });
 
   const room = {
@@ -49,22 +49,18 @@ const Game = (props: GameProps): React.ReactElement => {
     }, {
       id: 3, username: 'Thomas', state: PlayerState.AWAKE, picture: null, role: PlayerRole.NONE,
     }],
-    state: RoomState.LOBBY,
+    state: RoomState.STARTED,
   };
 
-  const kickUser = () => {
-    Alert.alert(
-      'Attention',
-      `Êtes vous sûre de vouloir exclure ${thePlayer ? thePlayer.username : 'ce joueur'} du jeu ?`,
-      [
-        {
-          text: 'Annuler',
-          style: 'cancel',
-        },
-        { text: 'Oui', onPress: () => console.log('KICK USER') },
-      ],
-      { cancelable: false },
-    );
+  const manageVote = () => {
+    if (room.state === RoomState.STARTED
+      && self.state === PlayerState.VOTING) gameAlert.voteUser(thePlayer);
+    else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
+      && self.role === PlayerRole.WOLF) gameAlert.wolfVote(thePlayer);
+    else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
+      && self.role === PlayerRole.SEER) gameAlert.seerVote(thePlayer);
+    else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
+      && self.role === PlayerRole.WITCH) gameAlert.witchVote(thePlayer, true);
   };
 
   const showPlayer = (start: number, end: number) => {
@@ -73,7 +69,7 @@ const Game = (props: GameProps): React.ReactElement => {
     for (let i = start; i <= end; i += 1) {
       if (i < room.players.length) {
         indents.push(
-          <View style={game.player} key={i}>
+          <TouchableOpacity onPress={manageVote} style={game.player} key={i}>
             <View style={game.kickBody}>
               {
                 room.players[i].state === PlayerState.DEAD
@@ -90,7 +86,12 @@ const Game = (props: GameProps): React.ReactElement => {
               {
                 room.state === RoomState.LOBBY
                 && (
-                <TouchableOpacity style={game.kick} onPress={() => { setThePlayer(room.players[i]); kickUser(); }}>
+                <TouchableOpacity
+                  style={game.kick}
+                  onPress={() => {
+                    setThePlayer(room.players[i]); gameAlert.kickUser();
+                  }}
+                >
                   <AntDesign name="closecircle" size={15} color="red" />
                 </TouchableOpacity>
                 )
@@ -103,7 +104,7 @@ const Game = (props: GameProps): React.ReactElement => {
             >
               {room.players[i].username}
             </Text>
-          </View>,
+          </TouchableOpacity>,
         );
       } else {
         indents.push(
@@ -155,6 +156,26 @@ const Game = (props: GameProps): React.ReactElement => {
 
   const sendMsg = () => {
     console.log('msg = ', msg);
+  };
+
+  const diplayCard = () => {
+    switch (self.role) {
+      case PlayerRole.SEER:
+        return <Image resizeMode="contain" style={game.card} source={seerCard} />;
+        break;
+      case PlayerRole.WITCH:
+        return <Image resizeMode="contain" style={game.card} source={witchCard} />;
+        break;
+      case PlayerRole.WOLF:
+        return <Image resizeMode="contain" style={game.card} source={wolfCard} />;
+        break;
+      case PlayerRole.VILLAGER:
+        return <Image resizeMode="contain" style={game.card} source={villagerCard} />;
+        break;
+      default:
+        return <Text>Le jeu n'a pas commencé encore.</Text>;
+        break;
+    }
   };
 
   return (
@@ -213,11 +234,11 @@ const Game = (props: GameProps): React.ReactElement => {
         <Modal isVisible={showCard} animationIn="tada">
           <View style={game.modalView}>
             <Text style={game.title}>
-              Vous êtes
+              Vous êtes 
               {rule[self.role].name}
             </Text>
             <Text style={game.sub}>{rule[self.role].info}</Text>
-            <Image resizeMode="contain" style={game.card} source={witchCard} />
+            {diplayCard()}
             <TouchableOpacity style={basic.button} onPress={() => { setshowCard(false); }}>
               <Text style={basic.btnText}>Compris</Text>
             </TouchableOpacity>
