@@ -17,7 +17,7 @@ import {
   MaterialIcons, AntDesign, Ionicons, FontAwesome5,
 } from '@expo/vector-icons';
 import {
-  PlayerState, RoomState, Player, PlayerRole,
+  PlayerState, RoomState, Player, PlayerRole, MessageType,
 } from '../services/types/rooms';
 import basic from '../constants/Styles';
 import game from '../constants/GameStyles';
@@ -32,35 +32,101 @@ export interface GameProps { navigation: any}
 
 const Game = (props: GameProps): React.ReactElement => {
   const [msg, setMsg] = useState('');
-  const [thePlayer, setThePlayer] = useState<Player>();
   const [showCard, setshowCard] = useState(false);
   const [self, setSelf] = React.useState<Player>({
-    username: 'tata', state: PlayerState.ROLE_BASED_ACTION, picture: '', role: PlayerRole.SEER, messages: [], connected: true,
+    username: 'tata',
+    state: PlayerState.ROLE_BASED_ACTION,
+    picture: '',
+    role: PlayerRole.SEER,
+    connected: true,
+    messages: [{
+      id: 'fwf',
+      type: MessageType.SYSTEM_GENERAL,
+      content: "En attende de l'admin",
+    }, {
+      id: 'fw',
+      type: MessageType.GENERAL,
+      username: 'toto',
+      content: 'Hello',
+    }, {
+      id: '2f',
+      type: MessageType.SYSTEM_SELF,
+      username: 'tata',
+      content: 'Bonjour tout le monde',
+    }, {
+      id: 'vv',
+      type: MessageType.SYSTEM_WOLF,
+      content: 'LE joueur toto a été tué',
+    }, {
+      id: 'vvwf',
+      type: MessageType.GENERAL,
+      username: 'marc',
+      content: "C'est pas moi",
+    }, {
+      id: 'fwfj',
+      type: MessageType.SYSTEM_GENERAL,
+      content: "En attende de l'admin",
+    }, {
+      id: '8fw',
+      type: MessageType.GENERAL,
+      username: 'toto',
+      content: 'Hello',
+    }, {
+      id: '20f',
+      type: MessageType.SYSTEM_SELF,
+      username: 'tata',
+      content: 'Bonjour tout le monde',
+    }, {
+      id: 'vv9',
+      type: MessageType.SYSTEM_WOLF,
+      content: 'LE joueur toto a été tué',
+    }, {
+      id: 'vv8wf',
+      type: MessageType.GENERAL,
+      username: 'marc',
+      content: "C'est pas moi",
+    }],
   });
 
   const room = {
     id: 'rw',
     name: 'fefe',
     max: 10,
+    admin: 'tata',
     players: [{
       id: 1, username: 'marc', state: PlayerState.AWAKE, picture: null, role: PlayerRole.NONE,
     }, {
       id: 2, username: 'toto', state: PlayerState.DEAD, picture: null, role: PlayerRole.NONE,
     }, {
       id: 3, username: 'Thomas', state: PlayerState.AWAKE, picture: null, role: PlayerRole.NONE,
+    }, {
+      id: 4, username: 'tata', state: PlayerState.AWAKE, picture: null, role: PlayerRole.NONE,
     }],
     state: RoomState.STARTED,
   };
 
-  const manageVote = () => {
-    if (room.state === RoomState.STARTED
-      && self.state === PlayerState.VOTING) gameAlert.voteUser(thePlayer);
+  const manageVote = (selectedPlayer: Player) => {
+    if (selectedPlayer.state === PlayerState.DEAD) {
+      Alert.alert(
+        'Erreur',
+        `Le joueur ${selectedPlayer ? selectedPlayer.username : ''} est décédé`,
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel',
+          },
+          { text: 'Ok' },
+        ],
+        { cancelable: false },
+      );
+    } else if (room.state === RoomState.STARTED
+        && self.state === PlayerState.VOTING) gameAlert.voteUser(selectedPlayer);
     else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
-      && self.role === PlayerRole.WOLF) gameAlert.wolfVote(thePlayer);
+        && self.role === PlayerRole.WOLF) gameAlert.wolfVote(selectedPlayer);
     else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
-      && self.role === PlayerRole.SEER) gameAlert.seerVote(thePlayer);
+        && self.role === PlayerRole.SEER) gameAlert.seerVote(selectedPlayer);
     else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
-      && self.role === PlayerRole.WITCH) gameAlert.witchVote(thePlayer, true);
+        && self.role === PlayerRole.WITCH) gameAlert.witchVote(selectedPlayer, true);
   };
 
   const showPlayer = (start: number, end: number) => {
@@ -69,7 +135,13 @@ const Game = (props: GameProps): React.ReactElement => {
     for (let i = start; i <= end; i += 1) {
       if (i < room.players.length) {
         indents.push(
-          <TouchableOpacity onPress={manageVote} style={game.player} key={i}>
+          <TouchableOpacity
+            onPress={() => {
+              manageVote(room.players[i]);
+            }}
+            style={game.player}
+            key={i}
+          >
             <View style={game.kickBody}>
               {
                 room.players[i].state === PlayerState.DEAD
@@ -84,17 +156,21 @@ const Game = (props: GameProps): React.ReactElement => {
                    && <MaterialIcons name="account-circle" size={50} color="#CDCBD1" />
               }
               {
-                room.state === RoomState.LOBBY
-                && (
-                <TouchableOpacity
-                  style={game.kick}
-                  onPress={() => {
-                    setThePlayer(room.players[i]); gameAlert.kickUser();
-                  }}
-                >
-                  <AntDesign name="closecircle" size={15} color="red" />
-                </TouchableOpacity>
-                )
+                room.state === RoomState.LOBBY && room.admin !== room.players[i].username
+                  && (
+                    <TouchableOpacity
+                      style={game.avatarIcon}
+                      onPress={() => {
+                        gameAlert.kickUser(room.players[i]);
+                      }}
+                    >
+                      <AntDesign name="closecircle" size={15} color="red" />
+                    </TouchableOpacity>
+                  )
+              }
+              {
+                room.state === RoomState.LOBBY && room.admin === room.players[i].username
+                && <FontAwesome5 style={game.avatarIcon} name="crown" size={15} color="orange" />
               }
             </View>
             <Text
@@ -123,34 +199,42 @@ const Game = (props: GameProps): React.ReactElement => {
       directionalLockEnabled
       style={game.scrollBody}
     >
-      <View style={game.col}>
-        <Text style={game.labelSystem}>System</Text>
-        <Text style={game.system}>En attente</Text>
-      </View>
-      <View style={game.col}>
-        <Text style={game.labelUser}>Toto</Text>
-        <Text style={game.userMsg}>Hello</Text>
-      </View>
-      <View style={game.col}>
-        <Text style={game.labelOther}>Tata</Text>
-        <Text style={game.otherMsg}>JE suis villageoios</Text>
-      </View>
-      <View style={game.col}>
-        <Text style={game.labelSystem}>System</Text>
-        <Text style={game.system}>Le jeu commence</Text>
-      </View>
-      <View style={game.col}>
-        <Text style={game.labelOther}>titi</Text>
-        <Text style={game.otherMsg}>ALLo</Text>
-      </View>
-      <View style={game.col}>
-        <Text style={game.labelOther}>titi</Text>
-        <Text style={game.otherMsg}>Bonjour</Text>
-      </View>
-      <View style={game.col}>
-        <Text style={game.labelUser}>Toto</Text>
-        <Text style={game.userMsg}>qui est la</Text>
-      </View>
+      {
+       self?.messages.map((msg) => {
+         switch (msg.type) {
+           case MessageType.GENERAL:
+             return (
+               <View style={game.col} key={msg.id}>
+                 <Text style={game.labelOther}>{msg.username}</Text>
+                 <Text style={game.otherMsg}>{msg.content}</Text>
+               </View>
+             );
+           case MessageType.SYSTEM_GENERAL:
+             return (
+               <View style={game.col} key={msg.id}>
+                 <Text style={game.labelSystem}>Système</Text>
+                 <Text style={game.system}>{msg.content}</Text>
+               </View>
+             );
+           case MessageType.SYSTEM_SELF:
+             return (
+               <View style={game.col} key={msg.id}>
+                 <Text style={game.labelUser}>{msg.username}</Text>
+                 <Text style={game.userMsg}>{msg.content}</Text>
+               </View>
+             );
+           case MessageType.SYSTEM_WOLF:
+             return (
+               <View style={game.col} key={msg.id}>
+                 <Text style={game.labelSystem}>Système Loupgarou</Text>
+                 <Text style={game.systemWolf}>{msg.content}</Text>
+               </View>
+             );
+           default:
+             return (<></>);
+         }
+       })
+      }
     </ScrollView>
   );
 
@@ -216,7 +300,7 @@ const Game = (props: GameProps): React.ReactElement => {
             {showPlayer(0, 5)}
           </View>
           <View style={game.body}>
-            <Text style={game.title}>{room.state === RoomState.LOBBY ? 'En attente' : 'En jeu'}</Text>
+            <Text style={game.title}>{room.state === RoomState.STARTED ? 'En jeu' : 'En attente'}</Text>
             {showMsg()}
             <TextInput
               editable={self && self.state !== PlayerState.DEAD}
@@ -235,7 +319,7 @@ const Game = (props: GameProps): React.ReactElement => {
         <Modal isVisible={showCard} animationIn="tada">
           <View style={game.modalView}>
             <Text style={game.title}>
-              Vous êtes 
+              Vous êtes
               {rule[self.role].name}
             </Text>
             <Text style={game.sub}>{rule[self.role].info}</Text>

@@ -63,7 +63,7 @@ const game = StyleSheet.create({
   kickBody: {
     position: 'relative',
   },
-  kick: {
+  avatarIcon: {
     position: 'absolute',
     top: 0,
     right: 0,
@@ -86,6 +86,10 @@ const game = StyleSheet.create({
   },
   system: {
     color: 'yellow',
+    textAlign: 'center',
+  },
+  systemWolf: {
+    color: 'red',
     textAlign: 'center',
   },
   userMsg: {

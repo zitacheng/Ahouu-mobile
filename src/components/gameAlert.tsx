@@ -1,9 +1,10 @@
 import { Alert } from 'react-native';
 import { Player } from '../services/types/rooms';
-export const kickUser = (thePlayer: Player) => {
+
+export const kickUser = (selectedPlayer: Player) => {
   Alert.alert(
     'Attention',
-    `Êtes vous sûre de vouloir exclure ${thePlayer ? thePlayer.username : 'ce joueur'} du jeu ?`,
+    `Êtes vous sûre de vouloir exclure ${selectedPlayer ? selectedPlayer.username : 'ce joueur'} du jeu ?`,
     [
       {
         text: 'Annuler',
@@ -15,10 +16,10 @@ export const kickUser = (thePlayer: Player) => {
   );
 };
 
-export const voteUser = (thePlayer: Player) => {
+export const voteUser = (selectedPlayer: Player) => {
   Alert.alert(
     'Voter',
-    `Êtes vous sûre de voter contre ${thePlayer ? thePlayer.username : 'ce joueur'} ?`,
+    `Êtes vous sûre de voter contre ${selectedPlayer ? selectedPlayer.username : 'ce joueur'} ?`,
     [
       {
         text: 'Annuler',
@@ -30,10 +31,10 @@ export const voteUser = (thePlayer: Player) => {
   );
 };
 
-export const wolfVote = (thePlayer: Player) => {
+export const wolfVote = (selectedPlayer: Player) => {
   Alert.alert(
     'Voter',
-    `Êtes vous sûre de tuer ${thePlayer ? thePlayer.username : 'ce joueur'} ?`,
+    `Êtes vous sûre de tuer ${selectedPlayer ? selectedPlayer.username : 'ce joueur'} ?`,
     [
       {
         text: 'Annuler',
@@ -45,10 +46,10 @@ export const wolfVote = (thePlayer: Player) => {
   );
 };
 
-export const seerVote = (thePlayer: Player) => {
+export const seerVote = (selectedPlayer: Player) => {
   Alert.alert(
     'Voir',
-    `Êtes vous sûre vouloir voir l'identité de ${thePlayer ? thePlayer.username : 'ce joueur'} ?`,
+    `Êtes vous sûre vouloir voir l'identité de ${selectedPlayer ? selectedPlayer.username : 'ce joueur'} ?`,
     [
       {
         text: 'Annuler',
@@ -60,10 +61,10 @@ export const seerVote = (thePlayer: Player) => {
   );
 };
 
-export const witchVote = (thePlayer: Player, save: boolean) => {
+export const witchVote = (selectedPlayer: Player, save: boolean) => {
   Alert.alert(
     'Sauver',
-    `Êtes vous sûre de ${save ? 'sauver' : 'empoisoner'} ${thePlayer ? thePlayer.username : 'ce joueur'} ?`,
+    `Êtes vous sûre de ${save ? 'sauver' : 'empoisoner'} ${selectedPlayer ? selectedPlayer.username : 'ce joueur'} ?`,
     [
       {
         text: 'Annuler',
