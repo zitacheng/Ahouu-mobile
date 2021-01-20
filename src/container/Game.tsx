@@ -354,8 +354,7 @@ const Game = (props: GameProps): React.ReactElement => {
         <Modal isVisible={showCard} animationIn="tada">
           <View style={game.modalView}>
             <Text style={game.title}>
-              Vous êtes
-              {rule[self.role].name}
+              {`Vous êtes ${rule[self.role].name}`}
             </Text>
             <Text style={game.sub}>{rule[self.role].info}</Text>
             {diplayCard()}
