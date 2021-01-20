@@ -48,7 +48,7 @@ const Game = (props: GameProps): React.ReactElement => {
           text: 'Annuler',
           style: 'cancel',
         },
-        { text: 'Oui', onPress: () => console.log("KICK USER") },
+        { text: 'Oui', onPress: () => console.log('KICK USER') },
       ],
       { cancelable: false },
     );
@@ -99,15 +99,38 @@ const Game = (props: GameProps): React.ReactElement => {
   };
 
   const showMsg = () => (
-    <ScrollView>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
-      <Text>Test MSG</Text>
+    <ScrollView
+      directionalLockEnabled
+      style={styles.scrollBody}
+    >
+      <View style={styles.col}>
+        <Text style={styles.labelSystem}>System</Text>
+        <Text style={styles.system}>En attente</Text>
+      </View>
+      <View style={styles.col}>
+        <Text style={styles.labelUser}>Toto</Text>
+        <Text style={styles.userMsg}>Hello</Text>
+      </View>
+      <View style={styles.col}>
+        <Text style={styles.labelOther}>Tata</Text>
+        <Text style={styles.otherMsg}>JE suis villageoios</Text>
+      </View>
+      <View style={styles.col}>
+        <Text style={styles.labelSystem}>System</Text>
+        <Text style={styles.system}>Le jeu commence</Text>
+      </View>
+      <View style={styles.col}>
+        <Text style={styles.labelOther}>titi</Text>
+        <Text style={styles.otherMsg}>ALLo</Text>
+      </View>
+      <View style={styles.col}>
+        <Text style={styles.labelOther}>titi</Text>
+        <Text style={styles.otherMsg}>Bonjour</Text>
+      </View>
+      <View style={styles.col}>
+        <Text style={styles.labelUser}>Toto</Text>
+        <Text style={styles.userMsg}>qui est la</Text>
+      </View>
     </ScrollView>
   );
 
@@ -183,6 +206,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
   },
+  colMsg: {
+    flexDirection: 'column',
+    display: 'flex',
+    flex: 1,
+  },
   body: {
     flexDirection: 'column',
     display: 'flex',
@@ -231,6 +259,50 @@ const styles = StyleSheet.create({
   back: {
     width: '90%',
     paddingBottom: 10,
+  },
+  scrollBody: {
+    width: '95%',
+    marginBottom: 20,
+  },
+  system: {
+    color: 'yellow',
+    textAlign: 'center',
+  },
+  userMsg: {
+    backgroundColor: '#EF864F',
+    padding: 5,
+    color: 'white',
+    alignSelf: 'flex-start',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  otherMsg: {
+    backgroundColor: 'grey',
+    padding: 5,
+    color: 'white',
+    alignSelf: 'flex-end',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  labelSystem: {
+    fontSize: 12,
+    color: 'white',
+    alignSelf: 'center',
+    marginTop: 10,
+  },
+  labelOther: {
+    fontSize: 12,
+    color: 'white',
+    alignSelf: 'flex-end',
+    margin: 3,
+    marginTop: 5,
+  },
+  labelUser: {
+    fontSize: 12,
+    color: 'white',
+    alignSelf: 'flex-start',
+    margin: 3,
+    marginTop: 5,
   },
 });
 
