@@ -68,6 +68,17 @@ const basic = StyleSheet.create({
     fontSize: 20,
     padding: 10,
   },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#1B222F',
+    justifyContent: 'center',
+  },
+  back: {
+    position: 'absolute',
+    top: 60,
+    left: 30,
+  },
 });
 
 export default basic;

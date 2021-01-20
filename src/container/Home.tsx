@@ -14,15 +14,17 @@ import {
 } from 'react-native';
 import basic from '../constants/Styles';
 
-const Home = (): React.ReactElement => {
+export interface HomeProps { navigation: any}
+
+const Home = (props: HomeProps): React.ReactElement => {
   const [name, setName] = useState('');
   const [max, setMax] = useState('');
 
   function createRoom() {
-    if (!name || !max || name.length > 15) {
+    if (!name || !max || name.length > 15 || parseInt(max, 10) > 12 || parseInt(max, 10) < 4) {
       Alert.alert(
         'Erreur',
-        'Veuillez fournir le nom et le nombre maximum de joueur.',
+        'Veuillez fournir le nom et le nombre maximum de joueur. Le maximum ne doit pas être supérieur à 12 ou inférieur à 4',
         [
           {
             text: 'Annuler',
@@ -34,6 +36,7 @@ const Home = (): React.ReactElement => {
       );
     } else {
       console.log('create room');
+      props.navigation.navigate('Game');
     }
   }
 
