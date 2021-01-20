@@ -8,10 +8,13 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import ProfileForm from '../components/ProfileForm';
 import basic from '../constants/Styles';
 
-export interface RegisterProps { navigation: any}
+export interface RegisterProps {
+  navigation: NavigationScreenProp<NavigationState, NavigationParams>
+}
 
 const Register = (props: RegisterProps) => {
   const [email, setEmail] = useState('');
@@ -24,7 +27,17 @@ const Register = (props: RegisterProps) => {
     (async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        alert('Sorry, we need camera roll permissions to make this work!');
+        Alert.alert(
+          'Nous sommes désolés',
+          'Nous avons besoin des droit d\'accés à votre librairie',
+          [
+            {
+              text: 'Annuler',
+              style: 'cancel',
+            },
+          ],
+          { cancelable: false },
+        );
       }
     })();
   }, []);

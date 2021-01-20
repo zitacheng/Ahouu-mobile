@@ -18,6 +18,7 @@ export enum RoomState {
   LOBBY = 'lobby',
   STARTED = 'started',
   FINISHED = 'finished',
+  READY = 'READY',
 }
 
 export type Player = {

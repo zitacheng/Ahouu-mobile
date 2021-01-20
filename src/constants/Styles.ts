@@ -67,6 +67,16 @@ const basic = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
   },
+  smBtnOff: {
+    backgroundColor: 'grey',
+    borderRadius: 20,
+    padding: 10,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: 'black',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+  },
   btnText: {
     color: 'white',
     fontSize: 16,

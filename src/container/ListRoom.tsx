@@ -8,16 +8,20 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import basic from '../constants/Styles';
+import { RoomState } from '../services/types/rooms';
 
-export interface ListRoomProps { navigation: any}
+export interface ListRoomProps {
+  navigation: NavigationScreenProp<NavigationState, NavigationParams>
+}
 
 const ListRoom = (props: ListRoomProps): React.ReactElement => {
   // const [rooms] = useState([]);
   const [rooms] = useState([{
-    id: 1, name: 'toto', state: 'READY', players: 3, maxPlayers: 10,
+    id: 1, name: 'toto', state: RoomState.READY, players: [4, 8, 9, 9, 6], max: 10,
   }, {
-    id: 2, name: 'tata', state: 'WAITING', players: 2, maxPlayers: 6,
+    id: 2, name: 'tata', state: RoomState.LOBBY, players: [4, 8, 9], max: 6,
   }]);
 
   return (
@@ -40,13 +44,14 @@ const ListRoom = (props: ListRoomProps): React.ReactElement => {
                   >
                     {room.name}
                   </Text>
-                  <Text style={styles.title}>{`${room.players}/${room.maxPlayers}`}</Text>
-                  <Text style={styles.title}>{room.state}</Text>
+                  <Text style={styles.title}>{`${room.players.length}/${room.max}`}</Text>
+                  <Text style={styles.title}>{room.state === RoomState.READY ? 'En cours' : 'En attente'}</Text>
                   <TouchableOpacity
+                    disabled={room.state !== RoomState.LOBBY}
                     onPress={() => {
                       props.navigation.navigate('Game');
                     }}
-                    style={basic.smBtn}
+                    style={room.state === RoomState.LOBBY ? basic.smBtn : basic.smBtnOff}
                   >
                     <Text style={styles.btnTxt}>Jouer</Text>
                   </TouchableOpacity>

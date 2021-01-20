@@ -1,4 +1,3 @@
-import { StackActions } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -10,12 +9,17 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {
+  NavigationScreenProp, NavigationState, NavigationParams,
+} from 'react-navigation';
+import {
   MaterialIcons, Entypo, Ionicons, MaterialCommunityIcons,
 } from '@expo/vector-icons';
 import basic from '../constants/Styles';
 import ProfileForm from '../components/ProfileForm';
 
-export interface SettingsProps { navigation: any}
+export interface SettingsProps {
+  navigation: NavigationScreenProp<NavigationState, NavigationParams>
+}
 
 const Settings = (props: SettingsProps): React.ReactElement => {
   const [edit, setEdit] = useState(false);
@@ -101,7 +105,7 @@ const Settings = (props: SettingsProps): React.ReactElement => {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
-                  props.navigation.dispatch(StackActions.popToTop());
+                  props.navigation.navigate('Login');
                 }}
                 style={basic.button}
               >

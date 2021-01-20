@@ -12,13 +12,15 @@ import {
   Keyboard,
   StatusBar,
 } from 'react-native';
+import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import basic from '../constants/Styles';
 
-export interface HomeProps { navigation: any}
+export interface HomeProps { navigation: NavigationScreenProp<NavigationState, NavigationParams> }
 
 const Home = (props: HomeProps): React.ReactElement => {
   const [name, setName] = useState('');
   const [max, setMax] = useState('');
+  const [password, setPassword] = useState('');
 
   function createRoom() {
     if (!name || !max || name.length > 15 || parseInt(max, 10) > 12 || parseInt(max, 10) < 4) {
@@ -62,9 +64,19 @@ const Home = (props: HomeProps): React.ReactElement => {
             placeholder="Max joueur"
             autoCapitalize="none"
             keyboardType="numeric"
+            maxLength={2}
             onChangeText={setMax}
             value={max}
           />
+          <TextInput
+            style={basic.input}
+            placeholder="Mot de passe"
+            autoCapitalize="none"
+            secureTextEntry
+            onChangeText={setPassword}
+            value={password}
+          />
+          <Text style={styles.info}>Rentrer un mot de passe pour que la salle soit en privée.</Text>
           <TouchableOpacity
             onPress={createRoom}
             style={basic.button}
@@ -107,6 +119,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 28,
     marginBottom: 20,
+  },
+  info: {
+    color: 'white',
+    fontSize: 10,
+    alignSelf: 'center',
   },
 });
 

@@ -15,6 +15,10 @@ const rule = {
     name: 'Villageois',
     info: "Vous devez démasquer les loup-garous avant qu'ils ne mangent tout le village.",
   },
+  none: {
+    name: '',
+    info: '',
+  },
 };
 
 export default rule;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactElement, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Vibration,
 } from 'react-native';
 import Modal from 'react-native-modal';
+import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import {
   MaterialIcons, AntDesign, Ionicons, FontAwesome5,
 } from '@expo/vector-icons';
@@ -28,9 +29,10 @@ import wolfCard from '../assets/images/loupgarou.png';
 import witchCard from '../assets/images/sorciere.png';
 import seerCard from '../assets/images/voyant.png';
 import villagerCard from '../assets/images/paysan.png';
+import nightSoung from '../assets/audio/night.mp3';
 import * as gameAlert from '../components/gameAlert';
 
-export interface GameProps { navigation: any}
+export interface GameProps { navigation: NavigationScreenProp<NavigationState, NavigationParams> }
 
 const Game = (props: GameProps): React.ReactElement => {
   const [msg, setMsg] = useState('');
@@ -107,16 +109,13 @@ const Game = (props: GameProps): React.ReactElement => {
     state: RoomState.LOBBY,
   };
 
-  const [sound, setSound] = React.useState();
+  const [sound, setSound] = React.useState<Audio.Sound>();
 
   async function playSound() {
-    const { sound } = await Audio.Sound.createAsync(
-      require('../assets/audio/night.mp3'),
-    );
+    const { sound } = await Audio.Sound.createAsync(nightSoung);
     setSound(sound);
 
-    console.log('Playing Sound');
-    await sound.playAsync();
+    await sound?.playAsync();
   }
 
   React.useEffect(() => (sound
@@ -149,9 +148,9 @@ const Game = (props: GameProps): React.ReactElement => {
         && self.role === PlayerRole.WITCH) gameAlert.witchVote(selectedPlayer, true);
   };
 
-  const showPlayer = (start: number, end: number) => {
+  const showPlayer = (start: number, end: number): ReactElement => {
     const indents = [];
-    if (!room) return;
+    if (!room) return (<></>);
     for (let i = start; i <= end; i += 1) {
       if (i < room.players.length) {
         indents.push(
@@ -220,34 +219,34 @@ const Game = (props: GameProps): React.ReactElement => {
       style={game.scrollBody}
     >
       {
-       self?.messages.map((msg) => {
-         switch (msg.type) {
+       self?.messages.map((message) => {
+         switch (message.type) {
            case MessageType.GENERAL:
              return (
-               <View style={game.col} key={msg.id}>
-                 <Text style={game.labelOther}>{msg.username}</Text>
-                 <Text style={game.otherMsg}>{msg.content}</Text>
+               <View style={game.col} key={message.id}>
+                 <Text style={game.labelOther}>{message.username}</Text>
+                 <Text style={game.otherMsg}>{message.content}</Text>
                </View>
              );
            case MessageType.SYSTEM_GENERAL:
              return (
-               <View style={game.col} key={msg.id}>
+               <View style={game.col} key={message.id}>
                  <Text style={game.labelSystem}>Système</Text>
-                 <Text style={game.system}>{msg.content}</Text>
+                 <Text style={game.system}>{message.content}</Text>
                </View>
              );
            case MessageType.SYSTEM_SELF:
              return (
-               <View style={game.col} key={msg.id}>
-                 <Text style={game.labelUser}>{msg.username}</Text>
-                 <Text style={game.userMsg}>{msg.content}</Text>
+               <View style={game.col} key={message.id}>
+                 <Text style={game.labelUser}>{message.username}</Text>
+                 <Text style={game.userMsg}>{message.content}</Text>
                </View>
              );
            case MessageType.SYSTEM_WOLF:
              return (
-               <View style={game.col} key={msg.id}>
+               <View style={game.col} key={message.id}>
                  <Text style={game.labelSystem}>Système Loupgarou</Text>
-                 <Text style={game.systemWolf}>{msg.content}</Text>
+                 <Text style={game.systemWolf}>{message.content}</Text>
                </View>
              );
            default:
@@ -277,7 +276,7 @@ const Game = (props: GameProps): React.ReactElement => {
         return <Image resizeMode="contain" style={game.card} source={villagerCard} />;
         break;
       default:
-        return <Text>Le jeu n'a pas commencé encore.</Text>;
+        return <Text>Le jeu n&apos;a pas commencé encore</Text>;
         break;
     }
   };
@@ -312,7 +311,7 @@ const Game = (props: GameProps): React.ReactElement => {
             room.state === RoomState.LOBBY && room.admin === self.username
             && (
             <TouchableOpacity
-              onPress={() => { Vibration.vibrate([100]); playSound();}}
+              onPress={() => { playSound(); }}
               style={game.btn}
             >
               <Text style={basic.btnText}>Commencer</Text>
@@ -323,7 +322,7 @@ const Game = (props: GameProps): React.ReactElement => {
             room.state === RoomState.STARTED
             && (
             <TouchableOpacity
-              onPress={() => { setshowCard(true); }}
+              onPress={() => { Vibration.vibrate([100]); setshowCard(true); }}
               style={game.headerIcon}
             >
               <AntDesign name="questioncircle" size={24} color="#CDCBD1" />
@@ -360,7 +359,12 @@ const Game = (props: GameProps): React.ReactElement => {
             </Text>
             <Text style={game.sub}>{rule[self.role].info}</Text>
             {diplayCard()}
-            <TouchableOpacity style={basic.button} onPress={() => { setshowCard(false); }}>
+            <TouchableOpacity
+              style={basic.button}
+              onPress={() => {
+                Vibration.vibrate([100]); setshowCard(false);
+              }}
+            >
               <Text style={basic.btnText}>Compris</Text>
             </TouchableOpacity>
           </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -14,9 +14,12 @@ import * as ImagePicker from 'expo-image-picker';
 import Modal from 'react-native-modal';
 import basic from '../constants/Styles';
 
-function ProfileForm(username: string, setUsername, email: string,
-  setEmail, password: string, setPassword, setImage, image, btnLabel, updateUser, setChooseImg, chooseImg) {
-
+function ProfileForm(username: string, setUsername: React.Dispatch<React.SetStateAction<string>>,
+  email: string, setEmail: React.Dispatch<React.SetStateAction<string>>, password: string,
+  setPassword: React.Dispatch<React.SetStateAction<string>>,
+  setImage: React.Dispatch<React.SetStateAction<string>>, image: string,
+  btnLabel: string, updateUser: VoidFunction,
+  setChooseImg: React.Dispatch<React.SetStateAction<boolean>>, chooseImg: boolean) {
   const pickImage = async (cameraMode: boolean) => {
     if (cameraMode === true) {
       const perm = await ImagePicker.requestCameraPermissionsAsync();

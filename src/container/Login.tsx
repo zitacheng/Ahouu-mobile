@@ -10,12 +10,14 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Alert,
+  Platform,
 } from 'react-native';
+import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 import logo from '../assets/images/logo.png';
 import basic from '../constants/Styles';
 
-export interface LoginProps { navigation: any}
+export interface LoginProps { navigation: NavigationScreenProp<NavigationState, NavigationParams> }
 
 const Login = (props: LoginProps): React.ReactElement => {
   const [username, setUsername] = useState('');
@@ -78,7 +80,7 @@ const Login = (props: LoginProps): React.ReactElement => {
             }}
             style={basic.button}
           >
-            <Text style={basic.btnText}>S'inscrire</Text>
+            <Text style={basic.btnText}>S&apos;inscrire</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
