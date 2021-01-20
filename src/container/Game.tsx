@@ -219,6 +219,7 @@ const Game = (props: GameProps): React.ReactElement => {
             <Text style={game.title}>{room.state === RoomState.LOBBY ? 'En attente' : 'En jeu'}</Text>
             {showMsg()}
             <TextInput
+              editable={self && self.state !== PlayerState.DEAD}
               style={basic.input}
               placeholder="Message"
               onChangeText={setMsg}
