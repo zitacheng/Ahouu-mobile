@@ -21,6 +21,7 @@ const basic = StyleSheet.create({
     width: '85%',
     borderRadius: 20,
     padding: 10,
+    paddingLeft: 15,
     marginLeft: 5,
     backgroundColor: '#1A2C55',
     color: 'white',
@@ -98,10 +99,16 @@ const basic = StyleSheet.create({
     backgroundColor: '#1B222F',
     justifyContent: 'center',
   },
+  row: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   back: {
     position: 'absolute',
-    top: 60,
-    left: 30,
+    top: 15,
+    left: 15,
   },
 });
 

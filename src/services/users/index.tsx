@@ -1,5 +1,5 @@
 import axios from '../axios';
-import { UserRegisterInput, UserUpdateInput, User } from '../types';
+import { User, UserFromInput } from '../types';
 
 /**
  * ### Verifies user's token
@@ -77,7 +77,7 @@ export const verify = async (current: User): Promise<boolean> => {
  * @error **generic/network-error** - Thrown if the any other error occurred
  * (i.e: network error, server unreachable, ...)
  */
-export const register = async (input: UserRegisterInput): Promise<User> => {
+export const register = async (input: UserFromInput): Promise<User> => {
   const data = new FormData();
 
   const entries = Object.entries(input);
@@ -101,7 +101,7 @@ export const register = async (input: UserRegisterInput): Promise<User> => {
  *  } catch (e) {
  *    switch (e.message) {
  *      case 'auth/invalid-body':
- *      case 'auth/invalid-email':
+ *      case 'auth/invalid-email-or-password':
  *      case 'auth/invalid-password':
  *        // Wrong user input
  *        break;
@@ -120,7 +120,7 @@ export const register = async (input: UserRegisterInput): Promise<User> => {
  * ---
  *
  * @error **auth/invalid-body** - Thrown if the body is missing or empty
- * @error **auth/invalid-email** - Thrown if the email is missing or empty
+ * @error **auth/invalid-email-or-password** - Thrown if the email is missing or empty
  * @error **auth/invalid-password** - Thrown if the password is missing or empty
  * @error **auth/user-not-found** - Thrown if the given email does not exists
  * @error **auth/invalid-credentials** - Thrown if the given password does not match
@@ -128,8 +128,8 @@ export const register = async (input: UserRegisterInput): Promise<User> => {
  * @error **generic/network-error** - Thrown if the any other error occurred
  * (i.e: network error, server unreachable, ...)
  */
-export const signIn = async (email: string, password: string): Promise<User> => {
-  const res = await axios.post('/login', { email, password });
+export const signIn = async (emailOrUsername: string, password: string): Promise<User> => {
+  const res = await axios.post('/login', { emailOrUsername, password });
 
   const { user } = res.data as { user: User };
   return user;
@@ -187,7 +187,7 @@ export const signIn = async (email: string, password: string): Promise<User> => 
  * @error **generic/network-error** - Thrown if the any other error occurred
  * (i.e: network error, server unreachable, ...)
  */
-export const update = async (input: UserUpdateInput, current?: User): Promise<User> => {
+export const update = async (current: User, input: UserFromInput): Promise<User> => {
   const data = new FormData();
 
   const entries = Object.entries(input);

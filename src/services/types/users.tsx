@@ -7,5 +7,4 @@ export type User = {
   token: string
 };
 
-export type UserRegisterInput = Pick<User, 'email' | 'username'> & { password: string, picture?: File };
-export type UserUpdateInput = Pick<User, 'email' | 'username'> & { password: string, picture?: File };
+export type UserFromInput = Pick<User, 'email' | 'username'> & { password?: string, picture?: FormDataValue };

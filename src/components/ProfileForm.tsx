@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
   TextInput,
   StyleSheet,
   View,
@@ -7,115 +11,174 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import {
-  MaterialIcons, Entypo, MaterialCommunityIcons,
-} from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import {
+  Entypo, Ionicons, MaterialCommunityIcons, MaterialIcons,
+} from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 import Modal from 'react-native-modal';
+import { PermissionResponse } from 'expo-av/build/Audio';
 import basic from '../constants/Styles';
+import { UserFromInput } from '../services';
+import { URIToFormDataValue } from '../utils';
 
-function ProfileForm(username: string, setUsername: React.Dispatch<React.SetStateAction<string>>,
-  email: string, setEmail: React.Dispatch<React.SetStateAction<string>>, password: string,
-  setPassword: React.Dispatch<React.SetStateAction<string>>,
-  setImage: React.Dispatch<React.SetStateAction<string>>, image: string,
-  btnLabel: string, updateUser: VoidFunction,
-  setChooseImg: React.Dispatch<React.SetStateAction<boolean>>, chooseImg: boolean) {
-  const pickImage = async (cameraMode: boolean) => {
-    if (cameraMode === true) {
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (perm.granted === true) {
-        const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsEditing: true,
-          aspect: [4, 3],
-          quality: 1,
-        });
-        if (!result.cancelled) {
-          setImage(result.uri);
-          setChooseImg(false);
-        }
-      }
-    } else {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
+export interface ProfileFormProps {
+  label: string,
+  info?: string,
+  info2?: string,
+  action: (input: UserFromInput) => Promise<void>
+  onBack: () => void
+}
+
+type PermissionsRequest = 'camera' | 'media';
+
+const ProfileForm = ({
+  label, info, info2, action, onBack,
+}: ProfileFormProps) => {
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [image, setImage] = useState('');
+  const [chooseImg, setChooseImg] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const pickImage = async (mode: 'camera' | 'media') => {
+    const request: Record<PermissionsRequest, () => Promise<PermissionResponse>> = {
+      camera: ImagePicker.requestCameraPermissionsAsync,
+      media: ImagePicker.requestMediaLibraryPermissionsAsync,
+    };
+
+    const { status } = await request[mode]();
+
+    if (status !== 'granted') {
+      Toast.show({
+        type: 'error',
+        text1: 'Autorisations manquantes',
+        text2: "Vous n'avez donner à l'application les autorisations nécessaires.",
       });
-      if (!result.cancelled) {
-        setImage(result.uri);
-        setChooseImg(false);
-      }
+
+      return;
     }
+
+    const options: ImagePicker.ImagePickerOptions = {
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    };
+
+    switch (mode) {
+      case 'camera': {
+        const res = await ImagePicker.launchCameraAsync(options);
+        if (!res.cancelled) setImage(res.uri);
+        break;
+      }
+      case 'media': {
+        const res = await ImagePicker.launchImageLibraryAsync(options);
+        if (!res.cancelled) setImage(res.uri);
+        break;
+      }
+      default:
+        break;
+    }
+
+    setChooseImg(false);
+  };
+
+  const onSubmit = async () => {
+    setLoading(true);
+
+    const input: UserFromInput = {
+      email,
+      username,
+      password: !password ? undefined : password,
+      picture: image ? URIToFormDataValue(image) : undefined,
+    };
+
+    await action(input);
+    setLoading(false);
   };
 
   return (
-    <View>
-      <View style={basic.body}>
-        <TouchableOpacity onPress={() => { setChooseImg(true); }} style={styles.camera}>
-          {
-            image
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={basic.container}
+      >
+        <View style={basic.body}>
+          <TouchableOpacity
+            onPress={onBack}
+            style={basic.back}
+          >
+            <Ionicons name="chevron-back-circle" size={30} color="#CDCBD1" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setChooseImg(true); }} style={styles.camera}>
+            {image
               ? <Image source={{ uri: image }} style={styles.img} />
-              : <MaterialIcons name="account-circle" size={70} color="#CDCBD1" />
-          }
-        </TouchableOpacity>
-        <View style={styles.row}>
-          <MaterialCommunityIcons style={basic.icon} name="account" size={20} color="#CDCBD1" />
-          <TextInput
-            autoCapitalize="none"
-            style={basic.input}
-            placeholder="Pseudo"
-            onChangeText={setUsername}
-            value={username}
-          />
-        </View>
-        <View style={styles.row}>
-          <MaterialIcons name="email" style={basic.icon} size={20} color="#CDCBD1" />
-          <TextInput
-            autoCapitalize="none"
-            style={basic.input}
-            placeholder="Email"
-            onChangeText={setEmail}
-            value={email}
-          />
-        </View>
-        <View style={styles.row}>
-          <Entypo name="lock" size={20} style={basic.icon} color="#CDCBD1" />
-          <TextInput
-            style={basic.input}
-            secureTextEntry
-            placeholder="Mot de passe"
-            onChangeText={setPassword}
-            value={password}
-          />
-        </View>
-        <TouchableOpacity onPress={updateUser} style={basic.button}>
-          <Text style={basic.btnText}>{btnLabel}</Text>
-        </TouchableOpacity>
-      </View>
-      <Modal isVisible={chooseImg} animationIn="tada">
-        <View style={styles.modalView}>
-          <TouchableOpacity style={basic.button} onPress={() => { pickImage(true); }}>
-            <Text style={basic.btnText}>Caméra</Text>
+              : <MaterialIcons name="account-circle" size={70} color="#CDCBD1" />}
           </TouchableOpacity>
-          <TouchableOpacity style={basic.button} onPress={() => { pickImage(false); }}>
-            <Text style={basic.btnText}>Librairie</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={basic.buttonOff} onPress={() => { setChooseImg(false); }}>
-            <Text style={basic.btnText}>Annuler</Text>
+          <View style={basic.row}>
+            <MaterialCommunityIcons style={basic.icon} name="account" size={20} color="#CDCBD1" />
+            <TextInput
+              autoCapitalize="none"
+              style={basic.input}
+              placeholder="Nom d'utilisateur"
+              placeholderTextColor="grey"
+              onChangeText={setUsername}
+              value={username}
+            />
+          </View>
+          <View style={basic.row}>
+            <MaterialIcons name="email" style={basic.icon} size={20} color="#CDCBD1" />
+            <TextInput
+              autoCapitalize="none"
+              style={basic.input}
+              placeholder="Email"
+              placeholderTextColor="grey"
+              onChangeText={setEmail}
+              value={email}
+            />
+          </View>
+          <View style={basic.row}>
+            <Entypo name="lock" size={20} style={basic.icon} color="#CDCBD1" />
+            <TextInput
+              style={basic.input}
+              secureTextEntry
+              placeholderTextColor="grey"
+              placeholder="Mot de passe"
+              onChangeText={setPassword}
+              value={password}
+            />
+          </View>
+          {info ? (<Text style={styles.info}>{info}</Text>) : <></>}
+          {info2 ? (<Text style={styles.info}>{info2}</Text>) : <></>}
+          <TouchableOpacity
+            onPress={onSubmit}
+            style={loading ? basic.buttonOff : basic.button}
+            disabled={loading}
+          >
+            <Text style={basic.btnText}>{label}</Text>
           </TouchableOpacity>
         </View>
-      </Modal>
-    </View>
+        <Modal isVisible={chooseImg} animationIn="tada">
+          <View style={styles.modalView}>
+            <TouchableOpacity style={basic.button} onPress={() => { pickImage('camera'); }}>
+              <Text style={basic.btnText}>Caméra</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={basic.button} onPress={() => { pickImage('media'); }}>
+              <Text style={basic.btnText}>Librairie</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={basic.buttonOff} onPress={() => { setChooseImg(false); }}>
+              <Text style={basic.btnText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   camera: {
     marginBottom: 30,
   },
@@ -142,6 +205,11 @@ const styles = StyleSheet.create({
   centeredView: {
     backgroundColor: 'rgba(255,255,255,0.5)',
     alignItems: 'center',
+  },
+  info: {
+    color: 'white',
+    fontSize: 12,
+    alignSelf: 'center',
   },
 });
 

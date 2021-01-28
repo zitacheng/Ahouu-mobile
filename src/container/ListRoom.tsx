@@ -1,70 +1,112 @@
-import React, { useState } from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   Dimensions,
-  StatusBar,
-  TouchableOpacity,
   ScrollView,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
-import basic from '../constants/Styles';
-import { RoomState } from '../services/types/rooms';
+import RoomItem from '../components/RoomItem';
+import services, { User } from '../services';
+import { Room } from '../services/types/rooms';
+import { useStoreActions, useStoreState } from '../store';
+import { ExpiredSessionRedirect } from '../utils';
 
 export interface ListRoomProps {
   navigation: NavigationScreenProp<NavigationState, NavigationParams>
 }
 
-const ListRoom = (props: ListRoomProps): React.ReactElement => {
-  // const [rooms] = useState([]);
-  const [rooms] = useState([{
-    id: 1, name: 'toto', state: RoomState.READY, players: [4, 8, 9, 9, 6], max: 10,
-  }, {
-    id: 2, name: 'tata', state: RoomState.LOBBY, players: [4, 8, 9], max: 6,
-  }]);
+const ListRoom = ({ navigation }: ListRoomProps) => {
+  const user = useStoreState((state) => state.user.data) as User;
+  const setUser = useStoreActions((actions) => actions.user.setUser);
+
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      setRooms(await services.rooms.getAll(user));
+    } catch (e) {
+      const { message } = e as Error;
+
+      switch (message) {
+        case 'auth/invalid-token':
+          ExpiredSessionRedirect(navigation, setUser);
+          break;
+        default:
+      }
+    }
+  }, [navigation, user, setUser]);
+
+  useEffect(() => {
+    setLoading(true);
+
+    refresh()
+      .then(() => new Promise<void>((next) => setTimeout(() => next(), 750)))
+      .then(() => setLoading(false))
+      .catch(() => setLoading(false));
+
+    const unsubscribe = navigation.addListener('focus', () => { refresh(); });
+
+    return unsubscribe.remove;
+  }, [navigation, refresh]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    await refresh();
+
+    setRefreshing(false);
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView
-        directionalLockEnabled
-        style={styles.scrollBody}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {
-          rooms.length > 0
-            ? rooms.map((room) => (
-              <View style={styles.list} key={room.id}>
-                <View style={styles.row}>
-                  <Text
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                    style={styles.title}
-                  >
-                    {room.name}
-                  </Text>
-                  <Text style={styles.title}>{`${room.players.length}/${room.max}`}</Text>
-                  <Text style={styles.title}>{room.state === RoomState.READY ? 'En cours' : 'En attente'}</Text>
-                  <TouchableOpacity
-                    disabled={room.state !== RoomState.LOBBY}
-                    onPress={() => {
-                      props.navigation.navigate('Game');
-                    }}
-                    style={room.state === RoomState.LOBBY ? basic.smBtn : basic.smBtnOff}
-                  >
-                    <Text style={styles.btnTxt}>Jouer</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))
-            : (
-              <View style={basic.information}>
-                <Text style={basic.infoTxt}>Aucune salle de jeu créée pour le moment.</Text>
-              </View>
-            )
-        }
-      </ScrollView>
+      <View style={styles.titleContainer}>
+        <Text style={styles.mainTitle}>Liste des salles</Text>
+      </View>
+      {loading
+        ? (<ActivityIndicator style={styles.loader} size="large" color="#EF864F" />)
+        : (
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              directionalLockEnabled
+              style={styles.scrollBody}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              refreshControl={(
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  progressBackgroundColor="black"
+                  colors={['#EF864F']}
+                  tintColor="#EF864F"
+                />
+            )}
+            >
+              {
+                rooms.length === 0
+                  ? (
+                    <View style={styles.infoContainer}>
+                      <MaterialIcons style={styles.icon} name="no-meeting-room" size={100} color="#CDCBD1" />
+                      <Text style={styles.info}>Aucune salle de jeu créée pour le moment.</Text>
+                    </View>
+                  )
+                  : rooms.map((room) => (
+                    <RoomItem
+                      key={room.id}
+                      navigation={navigation}
+                      room={room}
+                    />
+                  ))
+            }
+            </ScrollView>
+          </View>
+        )}
     </View>
   );
 };
@@ -72,38 +114,37 @@ const ListRoom = (props: ListRoomProps): React.ReactElement => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     backgroundColor: '#1B222F',
   },
-  row: {
-    flexDirection: 'row',
+  titleContainer: {
+    paddingTop: '20%',
     alignItems: 'center',
-    padding: 10,
-    justifyContent: 'space-between',
-    width: '100%',
+  },
+  infoContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loader: {
+    flexGrow: 1,
   },
   createBody: {
     marginTop: '30%',
   },
-  list: {
-    backgroundColor: '#33466F',
-    width: '95%',
-    borderRadius: 30,
-    elevation: 5,
-    shadowColor: 'black',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    padding: 5,
-    marginTop: '5%',
-    alignItems: 'center',
-  },
-  title: {
+  mainTitle: {
     color: 'white',
-    fontWeight: '700',
-    flexShrink: 1,
-    fontSize: 15,
-    marginLeft: 5,
-    marginRight: 5,
+    fontWeight: '900',
+    fontSize: 28,
+    marginBottom: 20,
+  },
+  info: {
+    color: 'white',
+    fontSize: 14,
+    padding: 10,
+  },
+  icon: {
+    paddingRight: 5,
+    alignSelf: 'center',
   },
   btnTxt: {
     fontSize: 13,
@@ -111,12 +152,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
+    paddingBottom: 25,
   },
   scrollBody: {
     height: Dimensions.get('window').height,
     width: Dimensions.get('window').width,
-    paddingTop: '20%',
   },
 });
 

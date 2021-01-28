@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -9,39 +9,91 @@ import {
   Image,
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
-  Alert,
   Platform,
+  ImageSourcePropType,
 } from 'react-native';
 import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 import logo from '../assets/images/logo.png';
 import basic from '../constants/Styles';
+import services from '../services';
+import { useStoreActions, useStoreState } from '../store';
 
-export interface LoginProps { navigation: NavigationScreenProp<NavigationState, NavigationParams> }
+export interface LoginProps {
+  navigation: NavigationScreenProp<NavigationState, NavigationParams>
+}
 
-const Login = (props: LoginProps): React.ReactElement => {
-  const [username, setUsername] = useState('');
+const Login = ({ navigation }: LoginProps) => {
+  const user = useStoreState((state) => state.user.data);
+  const setUser = useStoreActions((actions) => actions.user.setUser);
+
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  function authenticate() {
-    if (!username || !password) {
-      Alert.alert(
-        'Erreur',
-        "Remplissez votre nom d'utilisateur et mot de passe.",
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          { text: 'OK' },
-        ],
-        { cancelable: false },
-      );
-    } else {
-      console.log('authenticate');
-      props.navigation.navigate('Home');
+  useEffect(() => {
+    const autoSingIn = async () => {
+      if (user) {
+        try {
+          const valid = await services.users.verify(user);
+
+          if (!valid) setUser(undefined);
+          else navigation.navigate('Home');
+        } catch (e) {
+          // Silently skip error, token invalid or expired, login required
+        }
+      }
+    };
+
+    autoSingIn();
+  }, [user, setUser, navigation]);
+
+  const signIn = async () => {
+    if (!emailOrUsername || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Informations manquantes',
+        text2: "Remplissez votre email/nom d'utilisateur et mot de passe.",
+      });
+      return;
     }
-  }
+
+    try {
+      const data = await services.users.signIn(emailOrUsername, password);
+      setUser(data);
+
+      navigation.navigate('Home');
+    } catch (e) {
+      const { message } = e as Error;
+
+      switch (message) {
+        case 'auth/invalid-body':
+        case 'auth/invalid-email-or-password':
+        case 'auth/invalid-password':
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: 'Une erreur est survenue, veuillez réessayer.',
+          });
+          break;
+        case 'auth/user-not-found':
+          Toast.show({
+            type: 'error',
+            text1: "Email/Nom d'utilisateur invalide",
+            text2: "Votre email/nom d'utilisateur est incorrect.",
+          });
+          break;
+        case 'auth/invalid-credentials':
+          Toast.show({
+            type: 'error',
+            text1: 'Mot de passe invalide',
+            text2: 'Votre mot de passe est incorrect.',
+          });
+          break;
+        default:
+      }
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -49,35 +101,35 @@ const Login = (props: LoginProps): React.ReactElement => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <Image resizeMode="contain" style={styles.logo} source={logo} />
+        <Image resizeMode="contain" style={styles.logo} source={logo as ImageSourcePropType} />
         <View style={basic.body}>
-          <View style={styles.row}>
+          <View style={basic.row}>
             <MaterialCommunityIcons style={basic.icon} name="account" size={20} color="#CDCBD1" />
             <TextInput
               style={basic.input}
-              placeholder="Pseudo"
+              placeholder="Email ou nom d'utilusateur"
+              placeholderTextColor="grey"
               autoCapitalize="none"
-              onChangeText={setUsername}
-              value={username}
+              onChangeText={setEmailOrUsername}
+              value={emailOrUsername}
             />
           </View>
-          <View style={styles.row}>
+          <View style={basic.row}>
             <Entypo name="lock" style={basic.icon} size={20} color="#CDCBD1" />
             <TextInput
               style={basic.input}
               placeholder="Mot de passe"
+              placeholderTextColor="grey"
               onChangeText={setPassword}
               secureTextEntry
               value={password}
             />
           </View>
-          <TouchableOpacity onPress={authenticate} style={basic.button}>
+          <TouchableOpacity onPress={signIn} style={basic.button}>
             <Text style={basic.btnText}>Se connecter</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => {
-              props.navigation.navigate('Register');
-            }}
+            onPress={() => navigation.navigate('Register')}
             style={basic.button}
           >
             <Text style={basic.btnText}>S&apos;inscrire</Text>

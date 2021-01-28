@@ -11,3 +11,12 @@ web-build/
 
 # macOS
 .DS_Store
+
+# env
+.env
+
+# playground
+src/playground
+
+# yarn
+yarn-error.log

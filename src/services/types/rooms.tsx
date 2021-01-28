@@ -6,7 +6,6 @@ export type Room = {
   players: Player[]
   state: RoomState
   private: boolean
-  password?: string
   adminTurn: 'sleep' |'vote' | 'init' | 'none'
   votes: {
     wolfs: Record<string, string>
@@ -68,8 +67,8 @@ export enum MessageType {
 }
 
 export type RoomCreateInput = Partial<Pick<Room, 'name' | 'max'>> & { password?: string };
+export type RoomJoinInput = Pick<Room, 'id'> & { password: string };
 export type RoomGetOneInput = { id: string };
-export type RoomGetManyInput = { limit?: number, page?: number };
 
 export enum MessageEvents {
   INITIAL_ADMIN = 'initial-admin',

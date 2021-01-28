@@ -112,10 +112,10 @@ const Game = (props: GameProps): React.ReactElement => {
   const [sound, setSound] = React.useState<Audio.Sound>();
 
   async function playSound() {
-    const { sound } = await Audio.Sound.createAsync(nightSoung);
-    setSound(sound);
+    const { sound: s } = await Audio.Sound.createAsync(nightSoung);
+    setSound(s);
 
-    await sound?.playAsync();
+    await s?.playAsync();
   }
 
   React.useEffect(() => (sound
