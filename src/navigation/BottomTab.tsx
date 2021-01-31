@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { NavigationParams, NavigationScreenProp, NavigationState } from 'react-navigation';
+import { Platform } from 'react-native';
 import CreateRoom from '../container/CreateRoom';
 import ListRoom from '../container/ListRoom';
 import SettingsStack from './SettingsStack';
@@ -37,7 +38,7 @@ const BottomTab = (props: TabScreenProps) => {
     <Tab.Navigator
       initialRouteName="ListRoom"
       tabBarOptions={{
-        style: { borderTopWidth: 0, height: 80 },
+        style: Platform.OS === 'ios' ? { borderTopWidth: 0, height: 80 } : {},
         activeTintColor: '#EF864F',
         activeBackgroundColor: '#424242',
         inactiveBackgroundColor: '#212121',
