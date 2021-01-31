@@ -27,8 +27,8 @@ npm start
 - Pour lancer depuis votre téléphone
 
 ```sh
-Une page web devrais s\'ouvrir avec un QRCODE à scanner. Dans le cas contraire le QRCODE est aussi accessible depuis le terminal.
-Installer l\'application expo depuis votre téléphone puis scanner le QRCODE pour lancer l\'application depuis votre téléphone portable.
+Une page web devrais s'ouvrir avec un QRCODE à scanner. Dans le cas contraire le QRCODE est aussi accessible depuis le terminal.
+Installer l'application expo depuis votre téléphone puis scanner le QRCODE pour lancer l'application depuis votre téléphone portable.
 ```
 
 - Pour lancer depuis votre ordinateur
