@@ -10,24 +10,39 @@ import { MaterialIcons, AntDesign, FontAwesome5 } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import basic from '../constants/Styles';
 import {
-  PlayerState, RoomState, Player, Room,
+  PlayerState, RoomState, Player, Room, PlayerRole,
 } from '../services/types/rooms';
 import { useStoreState } from '../store';
 import { GameInstance } from '../services';
 
 export interface GamePlayerProps {
-  instance: GameInstance | undefined,
+  instance?: GameInstance,
   room: Room,
   admin: string,
+  self?: Player
   player?: Player
 }
 
+type PlayerActions = 'kick' | 'user-vote' | 'seer-vote' | 'wolf-vote' | 'witch-vote';
+
 const GamePlayer = ({
-  instance, room, admin, player,
+  instance, room, admin, self, player,
 }: GamePlayerProps) => {
   const user = useStoreState((state) => state.user.data);
 
-  const [kick, setKick] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [action, setAction] = useState<PlayerActions>('kick');
+  const [question, setQuestion] = useState('');
+  const [buttonText, setButtonText] = useState('');
+
+  const actions: Record<PlayerActions, ((player: Player) => void) | undefined> = {
+    kick: instance?.kickUser,
+    'user-vote': instance?.userVote,
+    'seer-vote': instance?.sendSeerVote,
+    'wolf-vote': instance?.sendWolfVote,
+    'witch-vote': instance?.sendWitchVote,
+  };
 
   if (!player) {
     return (
@@ -38,50 +53,61 @@ const GamePlayer = ({
     );
   }
 
-  const onKick = () => {
-    if (!instance) return;
+  const onAction = () => {
+    const exec = actions[action];
+    if (!exec) return;
 
-    instance.kickUser(player);
-    setKick(false);
+    setLoading(true);
+    exec(player);
+    setConfirm(false);
+    setLoading(false);
   };
 
-  // const onVote = (selected: Player) => {
-  //   if (selectedPlayer.state === PlayerState.DEAD) {
-  //     Alert.alert(
-  //       'Erreur',
-  //       `Le joueur ${selectedPlayer ? selectedPlayer.username : ''} est décédé`,
-  //       [
-  //         {
-  //           text: 'Annuler',
-  //           style: 'cancel',
-  //         },
-  //         { text: 'Ok' },
-  //       ],
-  //       { cancelable: false },
-  //     );
-  //   } else if (room.state === RoomState.STARTED
-  //       && self.state === PlayerState.VOTING) gameAlert.voteUser(selectedPlayer);
-  //   else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
-  //       && self.role === PlayerRole.WOLF) gameAlert.wolfVote(selectedPlayer);
-  //   else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
-  //       && self.role === PlayerRole.SEER) gameAlert.seerVote(selectedPlayer);
-  //   else if (room.state === RoomState.STARTED && self.state === PlayerState.ROLE_BASED_ACTION
-  //       && self.role === PlayerRole.WITCH) gameAlert.witchVote(selectedPlayer, true);
-  // };
+  const kick = () => {
+    setAction('kick');
+    setQuestion(`Êtes-vous sûr de vouloir exclure ${player.username} ?`);
+    setButtonText('Exclure');
+    setConfirm(true);
+  };
+
+  const vote = () => {
+    if (player.state === PlayerState.VOTING) {
+      setAction('user-vote');
+      setQuestion(`Êtes-vous sûr de vouloir voter pour ${player.username} ?`);
+      setButtonText('Voter');
+    } else if (self?.role === PlayerRole.SEER) {
+      setAction('seer-vote');
+      setQuestion(`Êtes-vous sûr de vouloir découvrir l'identité de ${player.username} ?`);
+      setButtonText("Découvrir l'identité");
+    } else if (self?.role === PlayerRole.WITCH) {
+      setAction('witch-vote');
+      setQuestion(`Êtes-vous sûr de vouloir utiliser votre potion sur ${player.username} ?`);
+      setButtonText('Utiliser la potion');
+    } else if (self?.role === PlayerRole.WOLF) {
+      setAction('wolf-vote');
+      setQuestion(`Êtes-vous sûr de vouloir essayer de tuer ${player.username} ?`);
+      setButtonText('Tuer');
+    }
+
+    setConfirm(true);
+  };
 
   const PlayerAvatar = () => {
-    if (player.state === PlayerState.DEAD) return (<FontAwesome5 name="ghost" size={50} color="grey" />);
+    const add = room.state !== RoomState.LOBBY && !player.connected ? styles.disconnected : {};
 
-    if (player.picture) return <Image style={styles.img} source={{ uri: player.picture }} />;
-    return <MaterialIcons name="account-circle" size={50} color="#CDCBD1" />;
+    if (player.state === PlayerState.DEAD) return (<FontAwesome5 style={add} name="ghost" size={50} color="grey" />);
+    if (player.picture) return <Image style={[styles.img, add]} source={{ uri: player.picture }} />;
+
+    return <MaterialIcons style={add} name="account-circle" size={50} color="#CDCBD1" />;
   };
 
   const PlayerIcon = () => {
     if (admin === player.username) return <FontAwesome5 style={styles.avatarIcon} name="crown" size={15} color="orange" />;
+    if (!player.connected) return <FontAwesome5 style={styles.avatarIcon} name="exclamation-circle" size={15} color="orange" />;
 
     return admin === user?.username && room.state === RoomState.LOBBY
       ? (
-        <TouchableOpacity style={styles.avatarIcon} onPress={() => setKick(true)}>
+        <TouchableOpacity style={styles.avatarIcon} onPress={kick}>
           <AntDesign name="closecircle" size={15} color="red" />
         </TouchableOpacity>
       )
@@ -90,8 +116,15 @@ const GamePlayer = ({
 
   return (
     <TouchableOpacity
-      // onPress={onVote}
-      disabled={player.state === PlayerState.DEAD}
+      onPress={vote}
+      disabled={
+        (self?.state !== PlayerState.ROLE_BASED_ACTION && self?.state !== PlayerState.VOTING)
+        || (self?.username === player.username
+          && (self.role !== PlayerRole.WITCH
+            || (self.role === PlayerRole.WITCH && self.state === PlayerState.VOTING)))
+        || player.state === PlayerState.DEAD
+        || !player.connected
+      }
       style={styles.player}
     >
       <View style={styles.kickBody}>
@@ -105,14 +138,17 @@ const GamePlayer = ({
       >
         {player.username}
       </Text>
-      <Modal isVisible={kick} animationIn="tada">
+      <Modal isVisible={confirm} animationIn="tada">
         <View style={styles.modalView}>
-          {/* TODO: text too long */}
-          <Text style={styles.modalTitle}>{`Êtes-vous sûr de vouloir exclure ${player.username} ?`}</Text>
-          <TouchableOpacity style={basic.button} onPress={onKick}>
-            <Text style={basic.btnText}>Exclure</Text>
+          <Text style={styles.modalTitle}>{question}</Text>
+          <TouchableOpacity
+            style={loading ? basic.buttonOff : basic.button}
+            onPress={onAction}
+            disabled={loading}
+          >
+            <Text style={basic.btnText}>{buttonText}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={basic.buttonOff} onPress={() => setKick(false)}>
+          <TouchableOpacity style={basic.buttonOff} onPress={() => setConfirm(false)}>
             <Text style={basic.btnText}>Annuler</Text>
           </TouchableOpacity>
         </View>
@@ -169,11 +205,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     color: 'white',
     fontWeight: '700',
+    textAlign: 'center',
     flexShrink: 1,
     fontSize: 18,
     marginLeft: 5,
     marginRight: 5,
     marginTop: 20,
     marginBottom: 20,
+  },
+  disconnected: {
+    opacity: 0.3,
   },
 });

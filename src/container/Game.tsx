@@ -13,7 +13,6 @@ import {
   Image,
   ScrollView,
   Vibration,
-  StyleSheet,
   ActivityIndicator,
   ImageSourcePropType,
 } from 'react-native';
@@ -22,9 +21,9 @@ import {
   NavigationScreenProp, NavigationState, NavigationParams, NavigationRoute,
 } from 'react-navigation';
 import {
-  AntDesign, Ionicons,
+  AntDesign, FontAwesome5, Ionicons,
 } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import Toast from 'react-native-toast-message';
 import {
   PlayerState, RoomState, Player, PlayerRole, MessageType, Room, RoomGetOneInput, Message,
 } from '../services/types/rooms';
@@ -34,7 +33,6 @@ import wolfCard from '../assets/images/loupgarou.png';
 import witchCard from '../assets/images/sorciere.png';
 import seerCard from '../assets/images/voyant.png';
 import villagerCard from '../assets/images/paysan.png';
-import NightSong from '../assets/audio/night.mp3';
 import services, { GameEvents, GameInstance } from '../services';
 
 import { RealNavigationEventPayload } from '../navigation/BottomTab';
@@ -42,6 +40,7 @@ import { RealNavigationEventPayload } from '../navigation/BottomTab';
 import { useStoreActions, useStoreState } from '../store';
 import { ExpiredSessionRedirect } from '../utils';
 import GamePlayer from '../components/GamePlayer';
+import GameMessage from '../components/GameMessage';
 
 export interface GameProps {
   route: NavigationRoute<Room>,
@@ -55,6 +54,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
   const [quit, setQuit] = useState(false);
   const [card, setCard] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [startLoading, setStartLoading] = useState(false);
   const [room, setRoom] = useState<Room | undefined>();
   const [admin, setAdmin] = useState<string | undefined>();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -63,7 +63,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
   const [message, setMessage] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
   const [instance, setInstance] = useState<GameInstance | undefined>();
-  const [music, setMusic] = useState<Audio.Sound>();
+  const [messageRef, setMessageRef] = useState<ScrollView | null>(null);
 
   const state: Record<RoomState, string> = {
     lobby: 'En attente',
@@ -81,7 +81,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
       info: 'Chaque nuit vous pouvez voir la vraie nature d\'une personne. Vous devez aider les villageois, mais rester discret pour ne pas être repérer par les loups-garous.',
     },
     wolf: {
-      name: 'Loupgragou',
+      name: 'Loup-garou',
       info: "Vous pouvez éliminer un joueur par nuit, votre but est d'éliminer tout les gentils.",
     },
     villager: {
@@ -99,9 +99,28 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
     navigation.navigate('ListRoom');
   }, [navigation, instance]);
 
-  useEffect(() => {
-    if (music) music.unloadAsync();
-  }, [music]);
+  const refresh = useCallback((res: Room) => {
+    const me = res.players.find(({ username }) => username === user?.username) as Player;
+
+    setRoom(res);
+    setAdmin(res.admin);
+    setPlayers(res.players);
+    setSelf(me);
+    setMessages(me ? me.messages : []);
+  }, [user]);
+
+  const refetch = useCallback(async () => {
+    if (!user) return undefined;
+
+    const { id } = room || route.params as Room;
+    const input:RoomGetOneInput = { id };
+
+    const res = await services.rooms.getOne(user, input);
+
+    refresh(res);
+
+    return res;
+  }, [route, user, room, refresh]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -127,49 +146,15 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
   }, [navigation, instance]);
 
   useEffect(() => {
-    if (instance || !user) return;
+    if (!!room || !user) return;
 
     const init = async () => {
       try {
-        const { id } = route.params as Room;
-        const input:RoomGetOneInput = { id };
-
-        const res = await services.rooms.getOne(user, input);
-        const me = res.players.find(({ username }) => username === user.username) as Player;
-
-        setRoom(res);
-        setAdmin(res.admin);
-        setPlayers([...res.players]);
-        setSelf(me);
-        setMessages(me ? [...me.messages] : []);
+        const res = await refetch();
 
         const onUserKicked = (payload: Player[]) => {
-          if (!payload.find((p) => p.username === user.username)) disconnect();
+          if (!payload.find((p) => p.username === user?.username)) disconnect();
           else setPlayers([...payload]);
-        };
-
-        const onGameStarted = async () => {
-          try {
-            const r = await services.rooms.getOne(user, { id: room?.id as string });
-            const m = res.players.find(({ username }) => username === user.username) as Player;
-
-            setRoom(r);
-            setAdmin(r.admin);
-            setPlayers([...r.players]);
-            setSelf(m);
-            setMessages([...m.messages]);
-          } catch (e) {
-            const error = e as Error;
-
-            switch (error.message) {
-              case 'auth/invalid-token':
-                ExpiredSessionRedirect(navigation, setUser);
-                break;
-              default:
-            }
-          }
-
-          setCard(true);
         };
 
         const events: GameEvents = {
@@ -179,10 +164,20 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
           'user-joined': (payload: Player[]) => setPlayers([...payload]),
           'user-leaved': (payload: Player[]) => setPlayers([...payload]),
           'user-kicked': onUserKicked,
-          'game-started': onGameStarted,
+          'game-started': () => setCard(true),
+          'game-ended': (payload: Room) => refresh(payload),
+          'village-sleeps': (payload: Room) => refresh(payload),
+          'village-awakes': (payload: Room) => refresh(payload),
+          'seer-wakes-up': (payload: Room) => refresh(payload),
+          'seer-sleeps': (payload: Room) => refresh(payload),
+          'witch-wakes-up': (payload: Room) => refresh(payload),
+          'witch-sleeps': (payload: Room) => refresh(payload),
+          'wolfs-wakes-up': (payload: Room) => refresh(payload),
+          'wolfs-sleeps': (payload: Room) => refresh(payload),
         };
 
-        setInstance(new GameInstance(res, user.token, events));
+        const i = new GameInstance(res as Room, user.token, events);
+        setInstance(i);
       } catch (e) {
         const error = e as Error;
 
@@ -196,7 +191,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
     };
 
     init();
-  }, [navigation, route, instance, room, user, setUser, disconnect]);
+  }, [navigation, room, user, setUser, refresh, refetch, disconnect, instance]);
 
   const onQuit = async () => {
     setQuit(false);
@@ -220,18 +215,26 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
     if (!user || !room || room.state !== RoomState.LOBBY || admin !== user.username) return <></>;
 
     return (
-      <TouchableOpacity style={styles.btn}>
-        <Text
-          style={basic.btnText}
-          onPress={async () => {
-            instance?.startGame();
+      <TouchableOpacity
+        style={startLoading ? game.btnOff : game.btn}
+        onPress={() => {
+          if (players.length !== room.max) {
+            Toast.show({
+              type: 'info',
+              text1: 'Il manque des joueurs',
+              text2: `La salle doit avoir ${room.max} joueurs pour pouvoir être lancée.`,
+            });
 
-            const res = await Audio.Sound.createAsync({ uri: NightSong });
-            setMusic(res.sound);
+            return;
+          }
 
-            await res.sound.playAsync();
-          }}
-        >
+          setStartLoading(true);
+          instance?.startGame();
+          setStartLoading(false);
+        }}
+        disabled={startLoading}
+      >
+        <Text style={basic.btnText}>
           Commencer
         </Text>
       </TouchableOpacity>
@@ -265,6 +268,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
           instance={instance}
           room={room as Room}
           admin={admin as string}
+          self={self}
           player={player}
         />
       );
@@ -272,8 +276,8 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
   };
 
   const PlayerCard = () => {
-    if (!self || !room || room.state !== RoomState.STARTED) {
-      return (<Text style={styles.card}>Le jeu n&apos;a pas commencé encore</Text>);
+    if (!self || !room || (room.state !== RoomState.STARTED && room.state !== RoomState.FINISHED)) {
+      return (<Text style={game.cardText}>Le jeu n&apos;a pas commencé encore</Text>);
     }
 
     switch (self.role) {
@@ -292,48 +296,45 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
 
   const Messages = () => (
     <ScrollView
-      directionalLockEnabled
+      ref={(ref) => setMessageRef(ref)}
       style={game.scrollBody}
+      contentContainerStyle={game.scrollContent}
+      onContentSizeChange={() => messageRef?.scrollToEnd({ animated: true })}
+      directionalLockEnabled
     >
-      {
-       messages.map(({
-         type, id, username, content,
-       }) => {
-         switch (type) {
-           case MessageType.GENERAL:
-             return (
-               <View style={game.col} key={id}>
-                 <Text style={game.labelOther}>{username}</Text>
-                 <Text style={game.otherMsg}>{content}</Text>
-               </View>
-             );
-           case MessageType.SYSTEM_GENERAL:
-             return (
-               <View style={game.col} key={id}>
-                 <Text style={game.labelSystem}>Système</Text>
-                 <Text style={game.system}>{content}</Text>
-               </View>
-             );
-           case MessageType.SYSTEM_SELF:
-             return (
-               <View style={game.col} key={id}>
-                 <Text style={game.labelUser}>{username}</Text>
-                 <Text style={game.userMsg}>{content}</Text>
-               </View>
-             );
-           case MessageType.SYSTEM_WOLF:
-             return (
-               <View style={game.col} key={id}>
-                 <Text style={game.labelSystem}>Système Loup-garou</Text>
-                 <Text style={game.systemWolf}>{content}</Text>
-               </View>
-             );
-           default:
-             return (<></>);
-         }
-       })
-      }
+      { messages.map((item) => <GameMessage key={item.id} message={item} />) }
     </ScrollView>
+  );
+
+  const MessageInput = () => (
+    <View style={game.messageInput}>
+      {
+        self?.role === PlayerRole.WOLF
+          ? (
+            <TouchableOpacity
+              onPress={() => setMode(mode === 'general' ? 'wolf' : 'general')}
+              disabled={self && self.state === PlayerState.DEAD
+                && room && room.state === RoomState.FINISHED}
+            >
+              <FontAwesome5 name="wolf-pack-battalion" size={40} color="orange" />
+            </TouchableOpacity>
+          )
+          : <></>
+      }
+      <TextInput
+        editable={room && room.state !== RoomState.LOBBY
+                  && self && self.state !== PlayerState.DEAD
+                  && room.state !== RoomState.FINISHED}
+        style={basic.input}
+        placeholder={mode === 'general' ? 'Générale' : 'Loups-garous'}
+        placeholderTextColor="gray"
+        onChangeText={setMessage}
+        value={message}
+        onSubmitEditing={onSendMessage}
+        returnKeyType="send"
+      />
+
+    </View>
   );
 
   return (
@@ -343,7 +344,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
         style={game.container}
       >
         {loading
-          ? (<ActivityIndicator style={styles.loader} size="large" color="#EF864F" />)
+          ? (<ActivityIndicator style={game.loader} size="large" color="#EF864F" />)
           : (
             <>
               <View style={game.header}>
@@ -351,8 +352,8 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
                   <Ionicons name="chevron-back-circle" size={30} color="#CDCBD1" />
                 </TouchableOpacity>
                 <Modal isVisible={quit} animationIn="tada">
-                  <View style={styles.modalView}>
-                    <Text style={styles.modalTitle}>Êtes-vous sûr de vouloir quitter ?</Text>
+                  <View style={game.modalView}>
+                    <Text style={game.modalTitle}>Êtes-vous sûr de vouloir quitter ?</Text>
                     <TouchableOpacity style={basic.button} onPress={onQuit}>
                       <Text style={basic.btnText}>Quitter</Text>
                     </TouchableOpacity>
@@ -369,17 +370,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
                 <View style={game.body}>
                   <Text style={game.title}>{room && state[room.state]}</Text>
                   {Messages()}
-                  <TextInput
-                    editable={room && room.state !== RoomState.LOBBY
-                      && self && self.state !== PlayerState.DEAD}
-                    style={basic.input}
-                    placeholder="Message"
-                    placeholderTextColor="gray"
-                    onChangeText={setMessage}
-                    value={message}
-                    onSubmitEditing={onSendMessage}
-                    returnKeyType="send"
-                  />
+                  {MessageInput()}
                 </View>
                 <View style={game.col}>{PlayerBar('right')}</View>
               </View>
@@ -392,9 +383,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
                   {PlayerCard()}
                   <TouchableOpacity
                     style={basic.button}
-                    onPress={() => {
-                      Vibration.vibrate([100]); setCard(false);
-                    }}
+                    onPress={() => { Vibration.vibrate([100]); setCard(false); }}
                   >
                     <Text style={basic.btnText}>Compris</Text>
                   </TouchableOpacity>
@@ -408,52 +397,3 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
 };
 
 export default Game;
-
-const styles = StyleSheet.create({
-  loader: {
-    flexGrow: 1,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: '#1b222f',
-    borderRadius: 20,
-    padding: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalTitle: {
-    color: 'white',
-    fontWeight: '700',
-    flexShrink: 1,
-    fontSize: 18,
-    marginLeft: 5,
-    marginRight: 5,
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  btn: {
-    backgroundColor: '#48D23F',
-    borderRadius: 20,
-    padding: 5,
-    width: 120,
-    marginLeft: -60,
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: 'black',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    position: 'absolute',
-    left: '50%',
-  },
-  card: {
-    color: 'white',
-    marginBottom: 20,
-  },
-});

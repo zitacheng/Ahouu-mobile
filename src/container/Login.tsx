@@ -31,17 +31,21 @@ const Login = ({ navigation }: LoginProps) => {
 
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const autoSingIn = async () => {
       if (user) {
         try {
+          setLoading(true);
           const valid = await services.users.verify(user);
 
           if (!valid) setUser(undefined);
           else navigation.navigate('Home');
         } catch (e) {
           // Silently skip error, token invalid or expired, login required
+        } finally {
+          setLoading(false);
         }
       }
     };
@@ -61,6 +65,8 @@ const Login = ({ navigation }: LoginProps) => {
     }
 
     try {
+      setLoading(true);
+
       const data = await services.users.signIn(emailOrUsername, password);
       setUser(data);
 
@@ -95,6 +101,8 @@ const Login = ({ navigation }: LoginProps) => {
           break;
         default:
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -128,12 +136,17 @@ const Login = ({ navigation }: LoginProps) => {
               value={password}
             />
           </View>
-          <TouchableOpacity onPress={signIn} style={basic.button}>
+          <TouchableOpacity
+            onPress={signIn}
+            style={basic.button}
+            disabled={loading}
+          >
             <Text style={basic.btnText}>Se connecter</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate('Register')}
-            style={basic.button}
+            style={loading ? basic.buttonOff : basic.button}
+            disabled={loading}
           >
             <Text style={basic.btnText}>S&apos;inscrire</Text>
           </TouchableOpacity>

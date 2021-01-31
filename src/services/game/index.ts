@@ -47,13 +47,11 @@ export default class Game {
 
   public sendMessage = (message: Partial<Message>): void => { this.emit('send-message', message); };
 
-  public putVillageToSleep = (): void => { this.emit('put-village-to-sleep'); };
+  public userVote = (player: Player): void => { this.emit('user-vote', player.username); };
 
-  public userVote = (vote: string): void => { this.emit('user-vote', vote); };
+  public sendSeerVote = (player: Player): void => { this.emit('seer-vote', player.username); };
 
-  public sendSeerVote = (vote: string): void => { this.emit('seer-vote', vote); };
+  public sendWolfVote = (player: Player): void => { this.emit('wolf-vote', player.username); };
 
-  public sendWolfVote = (vote: string): void => { this.emit('wolf-vote', vote); };
-
-  public sendWitchVote = (vote: string): void => { this.emit('witch-vote', vote); };
+  public sendWitchVote = (player: Player): void => { this.emit('witch-vote', player.username); };
 }

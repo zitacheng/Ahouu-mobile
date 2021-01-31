@@ -88,7 +88,10 @@ export enum MessageEvents {
   WITCH_WAKES_UP = 'witch-wakes-up',
   WITCH_SELECT_CHOICE = 'witch-select-choice',
   WITCH_SLEEPS = 'witch-sleeps',
+  PLAYER_VOTE = 'player-vote',
   PLAYER_DIED = 'player-died',
+  NO_ONE_DIED = 'no-one-died',
+  YOU_DIED = 'you-died',
   WOLF_WIN = 'wolf-win',
   VILLAGE_WIN = 'village-win',
 }
