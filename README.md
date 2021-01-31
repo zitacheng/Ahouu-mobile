@@ -18,14 +18,14 @@ git clone https://github.com/zitacheng/Ahouu-mobile.git
 npm i
 ```
 
-```sh
-Le terminal vous proposera d'installer expo si il n'est pas déjà installer. Il faudra sélectionner y puis entrer pour lancer l'installation.
-```
-
 - Et cette commande la pour lancer le projet
 
 ```sh
 npm start
+```
+
+```sh
+Le terminal vous proposera d'installer expo si il n'est pas déjà installé. Il faudra sélectionner 'y' puis entrer pour lancer l'installation.
 ```
 
 - Pour lancer depuis votre téléphone
