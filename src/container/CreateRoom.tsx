@@ -52,8 +52,7 @@ const CreateRoom = ({ navigation }: HomeProps): React.ReactElement => {
 
       const room = await services.rooms.create(user, input);
 
-      // TODO: go to game with room id
-      navigation.navigate('Game');
+      navigation.navigate('Game', room);
     } catch (e) {
       const { message } = e as Error;
 

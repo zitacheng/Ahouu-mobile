@@ -84,7 +84,7 @@ const UpdateProfile = ({ navigation }: RegisterProps) => {
   return (
     <ProfileForm
       label="Modifier"
-      info="Tout les champs sont optionnels"
+      info="Tout les champs sont optionnels."
       info2="Remplissez uniquement les champs à modifier."
       action={update}
       onBack={() => navigation.goBack()}

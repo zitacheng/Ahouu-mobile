@@ -25,10 +25,15 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
   const [secured, setSecured] = useState(false);
   const [password, setPassword] = useState('');
 
+  const state: Record<RoomState, string> = {
+    lobby: 'En attente',
+    started: 'En cours',
+    finished: 'Terminé',
+  };
+
   const onJoin = () => {
     if (room.private) setSecured(true);
-    // TODO: go to game with room id
-    else navigation.navigate('Game');
+    else navigation.navigate('Game', room);
   };
 
   const onSecuredJoin = async () => {
@@ -41,8 +46,7 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
       await services.rooms.join(user, input);
       setSecured(false);
 
-      // TODO: go to game with room id
-      navigation.navigate('Game');
+      navigation.navigate('Game', room);
     } catch (e) {
       setPassword('');
       setSecured(false);
@@ -66,6 +70,12 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
     }
   };
 
+  const canJoin = () => {
+    if (room.state === RoomState.LOBBY) return true;
+
+    return !!room.players.find(({ username }) => username === user.username);
+  };
+
   return (
     <View style={styles.list} key={room.id}>
       <View style={styles.row}>
@@ -83,11 +93,11 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
           {room.name}
         </Text>
         <Text style={styles.title}>{`${room.players.length}/${room.max}`}</Text>
-        <Text style={styles.title}>{room.state === RoomState.READY ? 'En cours' : 'En attente'}</Text>
+        <Text style={styles.title}>{state[room.state]}</Text>
         <TouchableOpacity
-          disabled={room.state !== RoomState.LOBBY}
+          disabled={!canJoin()}
           onPress={onJoin}
-          style={room.state === RoomState.LOBBY ? basic.smBtn : basic.smBtnOff}
+          style={canJoin() ? basic.smBtn : basic.smBtnOff}
         >
           <Text style={styles.btnTxt}>Jouer</Text>
         </TouchableOpacity>

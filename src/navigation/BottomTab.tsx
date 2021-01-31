@@ -12,7 +12,7 @@ export interface TabScreenProps {
   navigation: NavigationScreenProp<NavigationState, NavigationParams>
 }
 
-type RealNavigationEventPayload = {
+export type RealNavigationEventPayload = {
   data: { action: { type: 'NAVIGATE' | 'GO_BACK' } }
   target: string,
   preventDefault: () => void
