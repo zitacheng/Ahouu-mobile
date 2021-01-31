@@ -73,6 +73,7 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
   const canJoin = () => {
     if (room.state === RoomState.LOBBY) return true;
 
+    if (!user) return false;
     return !!room.players.find(({ username }) => username === user.username);
   };
 
