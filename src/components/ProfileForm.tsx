@@ -87,7 +87,6 @@ const ProfileForm = ({
 
   const onSubmit = async () => {
     setLoading(true);
-
     const input: UserFromInput = {
       email,
       username,

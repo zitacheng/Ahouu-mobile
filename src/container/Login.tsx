@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   Image,
+  Vibration,
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
@@ -50,6 +51,7 @@ const Login = ({ navigation }: LoginProps) => {
 
   const signIn = async () => {
     if (!emailOrUsername || !password) {
+      Vibration.vibrate([100]);
       Toast.show({
         type: 'error',
         text1: 'Informations manquantes',
@@ -65,6 +67,7 @@ const Login = ({ navigation }: LoginProps) => {
       navigation.navigate('Home');
     } catch (e) {
       const { message } = e as Error;
+      Vibration.vibrate([100]);
 
       switch (message) {
         case 'auth/invalid-body':

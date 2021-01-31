@@ -37,7 +37,7 @@ const BottomTab = (props: TabScreenProps) => {
     <Tab.Navigator
       initialRouteName="ListRoom"
       tabBarOptions={{
-        style: { borderTopWidth: 0 },
+        style: { borderTopWidth: 0, height: 80 },
         activeTintColor: '#EF864F',
         activeBackgroundColor: '#424242',
         inactiveBackgroundColor: '#212121',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import Toast from 'react-native-toast-message';
+import { Vibration } from 'react-native';
 import { useStoreActions } from '../store';
 import services, { UserFromInput } from '../services';
 import ProfileForm from '../components/ProfileForm';
@@ -16,6 +17,7 @@ const Register = ({ navigation }: RegisterProps) => {
     const { email, username, password } = input;
 
     if (!email || !password || !username) {
+      Vibration.vibrate([100]);
       Toast.show({
         type: 'error',
         text1: 'Informations manquantes',
@@ -32,6 +34,7 @@ const Register = ({ navigation }: RegisterProps) => {
       navigation.navigate('Home');
     } catch (e) {
       const { message } = e as Error;
+      Vibration.vibrate([100]);
 
       switch (message) {
         case 'auth/invalid-body':
