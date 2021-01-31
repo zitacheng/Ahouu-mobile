@@ -256,7 +256,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
 
   const PlayerBar = (side: 'left' | 'right') => {
     const left = [0, 2, 4, 6, 8, 10];
-    const right = [1, 3, 4, 6, 8, 10];
+    const right = [1, 3, 5, 6, 9, 11];
     const indexes = side === 'left' ? left : right;
 
     return indexes.map((index) => {

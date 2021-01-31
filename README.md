@@ -2,7 +2,7 @@
 
 Une application mobile du jeu loup garou.
 
-## Accèder à l'application
+## Accèder à l'application en dévelopment 
 
 Avant de faire les étapes, assurez vous que vous avez NodeJs d'installer et que la version de Nodejs est au minimum 14. Pour lancer l'application:
 
@@ -40,3 +40,7 @@ Installer l'application expo depuis votre téléphone puis scanner le QRCODE pou
 ```sh
 Depuis la page web vous pouvez cliquer sur run on IOS simulator ou run on Android device/simulator.
 ```
+
+## Accéder à l'application déployée
+
+L'application est disponible sur [Expo](https://expo.io/@kerma2/projects/ahouu).
