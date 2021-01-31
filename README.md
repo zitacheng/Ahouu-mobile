@@ -4,7 +4,7 @@ Une application mobile du jeu loup garou.
 
 ## Accèder à l'application
 
-Pour lancer l'application:
+Avant de faire les étapes, assurez vous que vous avez NodeJs d'installer et que la version de Nodejs est au minimum 14. Pour lancer l'application:
 
 - Cloner ce dépot github
 
