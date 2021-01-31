@@ -8,7 +8,7 @@ import Modal from 'react-native-modal';
 import { TextInput } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import basic from '../constants/Styles';
-import services, { User } from '../services';
+import services from '../services';
 import { Room, RoomJoinInput, RoomState } from '../services/types/rooms';
 import { useStoreActions, useStoreState } from '../store';
 import { ExpiredSessionRedirect } from '../utils';
@@ -19,7 +19,7 @@ export interface RoomItemProps {
 }
 
 const RoomItem = ({ room, navigation }: RoomItemProps) => {
-  const user = useStoreState((state) => state.user.data) as User;
+  const user = useStoreState((state) => state.user.data);
   const setUser = useStoreActions((actions) => actions.user.setUser);
 
   const [secured, setSecured] = useState(false);
@@ -37,6 +37,12 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
   };
 
   const onSecuredJoin = async () => {
+    if (!user) {
+      setPassword('');
+      setSecured(false);
+      return;
+    }
+
     try {
       const input: RoomJoinInput = {
         id: room.id,
@@ -44,12 +50,9 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
       };
 
       await services.rooms.join(user, input);
-      setSecured(false);
 
       navigation.navigate('Game', room);
     } catch (e) {
-      setPassword('');
-      setSecured(false);
       const { message } = e as Error;
 
       switch (message) {
@@ -67,6 +70,9 @@ const RoomItem = ({ room, navigation }: RoomItemProps) => {
           break;
         default:
       }
+    } finally {
+      setPassword('');
+      setSecured(false);
     }
   };
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import Toast from 'react-native-toast-message';
 import { useStoreActions, useStoreState } from '../store';
-import services, { User, UserFromInput } from '../services';
+import services, { UserFromInput } from '../services';
 import ProfileForm from '../components/ProfileForm';
 import { ExpiredSessionRedirect } from '../utils';
 
@@ -11,10 +11,12 @@ export interface RegisterProps {
 }
 
 const UpdateProfile = ({ navigation }: RegisterProps) => {
-  const user = useStoreState((state) => state.user.data) as User;
+  const user = useStoreState((state) => state.user.data);
   const setUser = useStoreActions((actions) => actions.user.setUser);
 
   const update = async (input: UserFromInput) => {
+    if (!user) return;
+
     const {
       email, username, password, picture,
     } = input;

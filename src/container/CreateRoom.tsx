@@ -14,7 +14,7 @@ import {
 import Toast from 'react-native-toast-message';
 import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import basic from '../constants/Styles';
-import services, { RoomCreateInput, User } from '../services';
+import services, { RoomCreateInput } from '../services';
 import { useStoreActions, useStoreState } from '../store';
 import { ExpiredSessionRedirect } from '../utils';
 
@@ -23,7 +23,7 @@ export interface HomeProps {
 }
 
 const CreateRoom = ({ navigation }: HomeProps): React.ReactElement => {
-  const user = useStoreState((state) => state.user.data) as User;
+  const user = useStoreState((state) => state.user.data);
   const setUser = useStoreActions((actions) => actions.user.setUser);
 
   const [max, setMax] = useState('');
@@ -32,6 +32,8 @@ const CreateRoom = ({ navigation }: HomeProps): React.ReactElement => {
   const [loading, setLoading] = useState(false);
 
   const createRoom = async () => {
+    if (!user) return;
+
     setLoading(true);
 
     if (!max) {

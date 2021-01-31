@@ -35,7 +35,7 @@ import witchCard from '../assets/images/sorciere.png';
 import seerCard from '../assets/images/voyant.png';
 import villagerCard from '../assets/images/paysan.png';
 import NightSong from '../assets/audio/night.mp3';
-import services, { GameEvents, User, GameInstance } from '../services';
+import services, { GameEvents, GameInstance } from '../services';
 
 import { RealNavigationEventPayload } from '../navigation/BottomTab';
 
@@ -49,7 +49,7 @@ export interface GameProps {
 }
 
 const Game = ({ navigation, route }: GameProps): React.ReactElement => {
-  const user = useStoreState((state) => state.user.data) as User;
+  const user = useStoreState((state) => state.user.data);
   const setUser = useStoreActions((actions) => actions.user.setUser);
 
   const [quit, setQuit] = useState(false);
@@ -127,7 +127,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
   }, [navigation, instance]);
 
   useEffect(() => {
-    if (instance) return;
+    if (instance || !user) return;
 
     const init = async () => {
       try {
@@ -217,7 +217,7 @@ const Game = ({ navigation, route }: GameProps): React.ReactElement => {
   };
 
   const StartGameButton = () => {
-    if (!room || room.state !== RoomState.LOBBY || admin !== user.username) return <></>;
+    if (!user || !room || room.state !== RoomState.LOBBY || admin !== user.username) return <></>;
 
     return (
       <TouchableOpacity style={styles.btn}>

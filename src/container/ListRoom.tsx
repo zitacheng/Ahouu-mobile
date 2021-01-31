@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { NavigationScreenProp, NavigationState, NavigationParams } from 'react-navigation';
 import RoomItem from '../components/RoomItem';
-import services, { User } from '../services';
+import services from '../services';
 import { Room } from '../services/types/rooms';
 import { useStoreActions, useStoreState } from '../store';
 import { ExpiredSessionRedirect } from '../utils';
@@ -21,7 +21,7 @@ export interface ListRoomProps {
 }
 
 const ListRoom = ({ navigation }: ListRoomProps) => {
-  const user = useStoreState((state) => state.user.data) as User;
+  const user = useStoreState((state) => state.user.data);
   const setUser = useStoreActions((actions) => actions.user.setUser);
 
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -29,6 +29,8 @@ const ListRoom = ({ navigation }: ListRoomProps) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
+    if (!user) return;
+
     try {
       setRooms(await services.rooms.getAll(user));
     } catch (e) {

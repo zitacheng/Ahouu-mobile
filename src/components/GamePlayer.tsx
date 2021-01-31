@@ -13,7 +13,7 @@ import {
   PlayerState, RoomState, Player, Room,
 } from '../services/types/rooms';
 import { useStoreState } from '../store';
-import { GameInstance, User } from '../services';
+import { GameInstance } from '../services';
 
 export interface GamePlayerProps {
   instance: GameInstance | undefined,
@@ -25,7 +25,7 @@ export interface GamePlayerProps {
 const GamePlayer = ({
   instance, room, admin, player,
 }: GamePlayerProps) => {
-  const user = useStoreState((state) => state.user.data) as User;
+  const user = useStoreState((state) => state.user.data);
 
   const [kick, setKick] = useState(false);
 
@@ -79,7 +79,7 @@ const GamePlayer = ({
   const PlayerIcon = () => {
     if (admin === player.username) return <FontAwesome5 style={styles.avatarIcon} name="crown" size={15} color="orange" />;
 
-    return admin === user.username && room.state === RoomState.LOBBY
+    return admin === user?.username && room.state === RoomState.LOBBY
       ? (
         <TouchableOpacity style={styles.avatarIcon} onPress={() => setKick(true)}>
           <AntDesign name="closecircle" size={15} color="red" />
